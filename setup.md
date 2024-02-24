@@ -6,16 +6,27 @@ yarn workspace server add typescript -D
 yarn workspace server add tsc-watch -D
 
 cd ./apps/server
-tsc --init
 # creates a typescript configution directory
+tsc --init
+```
+
 # change tsconfig.json
+
+```
 "rootDir": "./src"
  "outDir": "./dist", # put all the compiled code in dist folder
+```
+
 # add these script in package.josn
+
+```
  "scripts": {
         "start": "node dist/index.js",
         "build" : "tsc -p .",
         "dev": "tsc-watch --onSuccess \"node dist/index.js\"" # on compilation success open dist/index.js in watch mode
     },
+```
 
+```sh
+yarn workspace server add socket.io
 ```
