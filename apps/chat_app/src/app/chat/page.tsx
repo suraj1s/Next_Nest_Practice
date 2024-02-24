@@ -1,71 +1,11 @@
 "use client"
-import React, { useEffect, useState , useRef, useCallback } from "react";
-import { io , Socket } from "socket.io-client";
-
-
-interface ISocketContext {
-  sendMessage: (msg: string) => any;
-  messages: string[];
-}
+import { useSocket } from "@/context/socketProvider";
+import React, { useEffect , useRef } from "react";
 
 const Page: React.FC = () => {
-  const dummyMessage = [
-    {
-      id: 1,
-      user: "user1",
-      message: "Hello",
-    },
-    {
-      id: 2,
-      user: "user2",
-      message: "Hi",
-    },
-    {
-      id: 3,
-      user: "user1",
-      message: "How are you?",
-    },
-    {
-      id: 4,
-      user: "user2",
-      message: "I am good",
-    },
-  ];
 
   const scrollRef = useRef<HTMLDivElement>(null);
-
-  const [socket, setSocket] = useState<Socket>();
-  const [messages, setMessages] = useState<string[]>([]);
-
-  const sendMessage: ISocketContext["sendMessage"] = useCallback(
-    (msg) => {
-      console.log("Send Message", msg);
-      if (socket) {
-        socket.emit("client:message", { message: msg });
-      }
-    },
-    [socket]
-  );
-
-  const onMessageRec = useCallback((msg: string) => {
-    console.log("From Server Msg Rec", msg);
-    const message= msg;
-    setMessages((prev) => [...prev, message]);
-  }, []);
-
-  useEffect(() => {
-    const _socket = io("http://localhost:8000");
-    // _socket.on("server:message", (msg) => console.log( "from server " , msg));
-    _socket.on("server:message", onMessageRec);
-
-    setSocket(_socket);
-    return () => {
-      _socket.off("server:message", onMessageRec);
-      _socket.disconnect();
-      setSocket(undefined);
-    };
-  }, []);
-
+  const { sendMessage, messages } = useSocket();
 
   useEffect(() => {
     // Scroll to the bottom of the div when messages change
@@ -79,16 +19,9 @@ const Page: React.FC = () => {
     e.preventDefault();
     const inputValue = e.target[0].value;
     sendMessage(inputValue);
-    // const user = messages.length % 2 === 0 ? "user1" : "user2";
-    // setMessages([...messages, { id: messages.length + 1 , user: user, message: inputValue }]);
     e.target[0].value = "";
   };
-  useEffect(() => {
-  
-    console.log( messages)
-   
-  }, [ messages])
-  
+    
   return (
     <div className="h-screen  ">
       <div>Contacts</div>
