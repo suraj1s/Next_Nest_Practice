@@ -1,7 +1,12 @@
 "use client"
+import React, { useEffect, useState , useRef, useCallback } from "react";
+import { io , Socket } from "socket.io-client";
 
-import { useSocket } from "@/context/socketProvider";
-import React, { useEffect, useState , useRef } from "react";
+
+interface ISocketContext {
+  sendMessage: (msg: string) => any;
+  messages: string[];
+}
 
 const Page: React.FC = () => {
   const dummyMessage = [
@@ -27,11 +32,41 @@ const Page: React.FC = () => {
     },
   ];
 
-  // const [messages, setMessages] = useState(dummyMessage)
   const scrollRef = useRef<HTMLDivElement>(null);
 
-  const {sendMessage , messages } = useSocket();
-  const [message, setMessage] = useState("");
+  const [socket, setSocket] = useState<Socket>();
+  const [messages, setMessages] = useState<string[]>([]);
+
+  const sendMessage: ISocketContext["sendMessage"] = useCallback(
+    (msg) => {
+      console.log("Send Message", msg);
+      if (socket) {
+        socket.emit("client:message", { message: msg });
+      }
+    },
+    [socket]
+  );
+
+  const onMessageRec = useCallback((msg: string) => {
+    console.log("From Server Msg Rec", msg);
+    const message= msg;
+    setMessages((prev) => [...prev, message]);
+  }, []);
+
+  useEffect(() => {
+    const _socket = io("http://localhost:8000");
+    // _socket.on("server:message", (msg) => console.log( "from server " , msg));
+    _socket.on("server:message", onMessageRec);
+
+    setSocket(_socket);
+    return () => {
+      _socket.off("server:message", onMessageRec);
+      _socket.disconnect();
+      setSocket(undefined);
+    };
+  }, []);
+
+
   useEffect(() => {
     // Scroll to the bottom of the div when messages change
     if (scrollRef.current) {
@@ -39,10 +74,10 @@ const Page: React.FC = () => {
     }
   }, [messages]);
 
+
   const handleSubmit = (e: any) => {
     e.preventDefault();
     const inputValue = e.target[0].value;
-    setMessage(inputValue);
     sendMessage(inputValue);
     // const user = messages.length % 2 === 0 ? "user1" : "user2";
     // setMessages([...messages, { id: messages.length + 1 , user: user, message: inputValue }]);
@@ -50,39 +85,40 @@ const Page: React.FC = () => {
   };
   useEffect(() => {
   
-    console.log(message , "||" ,  messages)
+    console.log( messages)
    
-  }, [message , messages])
+  }, [ messages])
   
   return (
-    <div className="h-screen">
+    <div className="h-screen  ">
       <div>Contacts</div>
-      <div className="relative container max-h-[90%] h-full border-4 border-gray-300 rounded-3xl px-10 pt-16 pb-20 max-w-[55%] ">
+      <div className="relative container max-h-[90%] h-full border-4 border-gray-300 rounded-3xl px-[2.5%] pt-16 pb-20 max-w-[55%] ">
         <h1 className="absolute top-5 font-bold text-2xl text-gray-300  ">
           Chat
         </h1>
 
-        {/* <div
+        <div
           ref={scrollRef}
           className="absolute bottom-20  w-[90%]  overflow-y-scroll flex flex-col"
         >
           {messages.map((message, id) => (
             <div
               key={id}
-              className={`${message.user === "user1" ? "justify-end" : "justify-start"} flex gap-x-2 items-center`}
+              // ${message.user === "user1" ? "justify-end" : "justify-start"}
+              className={` flex gap-x-2 items-center`}
             >
               <div className="size-5 bg-gray-300 rounded-full"></div>
               <div className="bg-slate-900 p-2 rounded-lg">
-                <p className="text-gray-200 font-medium">{message.message}</p>
+                <p className="text-gray-200 font-medium">{message}</p>
               </div>
             </div>
           ))}
-        </div> */}
+        </div>
 
           <form onSubmit={(e) => handleSubmit(e)}className="absolute bottom-5 flex gap-x-2 items-center  w-full ">
           <input
             type="text"
-            className="border-2 border-gray-400 w-[83%] rounded-lg h-10 bg-slate-900 text-gray-200 font-medium  outline-slate-800 px-3"
+            className="border-2 border-gray-400 w-[70%] lg:w-[83%] rounded-lg h-10 bg-slate-900 text-gray-200 font-medium  outline-slate-800 px-3"
             
           />
           <button type="submit" className="px-2 py-1 bg-slate-900 border-2 border-gray-400 rounded-md">

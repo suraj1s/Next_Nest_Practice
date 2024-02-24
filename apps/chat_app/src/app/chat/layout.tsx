@@ -6,8 +6,11 @@ export default function ChatLayout({
   children: any;
 }) {
   return (
-    <SocketProvider >
+    // <SocketProvider >
+    //   {children}
+    // </SocketProvider>
+    <div>
       {children}
-    </SocketProvider>
+    </div>
   );
 }
