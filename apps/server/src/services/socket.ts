@@ -22,7 +22,7 @@ class SocketService {
       console.log("a new socket connected", socket.id);
       socket.on("client:message", async ({message } : {message : string }) => {
         console.log("new message recieved ", message);
-        socket.emit("server:message",  message );
+        io.emit("server:message",  message );
       })
       socket.on("disconnect", () => {
         console.log("user disconnected msg:form server");

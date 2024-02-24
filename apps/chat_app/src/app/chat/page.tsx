@@ -9,6 +9,7 @@ const Page: React.FC = () => {
 
   useEffect(() => {
     // Scroll to the bottom of the div when messages change
+    console.log(messages, "messages")
     if (scrollRef.current) {
       scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
     }
