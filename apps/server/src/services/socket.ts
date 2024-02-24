@@ -19,8 +19,9 @@ class SocketService {
     console.log("initiliazing socket listeners...")
     io.on("connect", (socket) => {
       console.log("a new socket connected", socket.id);
-      socket.on("event:message", async ({message } : {message : string }) => {
+      socket.on("client:message", async ({message } : {message : string }) => {
         console.log("new message recieved ", message);
+        socket.emit("server:message",  message );
       })
       socket.on("disconnect", () => {
         console.log("user disconnected msg:form server");

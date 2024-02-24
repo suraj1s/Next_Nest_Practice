@@ -1,5 +1,5 @@
 {
-  "name": "scalable-chat",
+  "name": "chat_project",
   "private": true,
   "scripts": {
     "build": "turbo build",

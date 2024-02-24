@@ -1,5 +1,6 @@
 "use client"
 
+import { useSocket } from "@/context/socketProvider";
 import React, { useEffect, useState , useRef } from "react";
 
 const Page: React.FC = () => {
@@ -26,8 +27,11 @@ const Page: React.FC = () => {
     },
   ];
 
-  const [messages, setMessages] = useState(dummyMessage)
+  // const [messages, setMessages] = useState(dummyMessage)
   const scrollRef = useRef<HTMLDivElement>(null);
+
+  const {sendMessage , messages } = useSocket();
+  const [message, setMessage] = useState("");
   useEffect(() => {
     // Scroll to the bottom of the div when messages change
     if (scrollRef.current) {
@@ -38,10 +42,17 @@ const Page: React.FC = () => {
   const handleSubmit = (e: any) => {
     e.preventDefault();
     const inputValue = e.target[0].value;
-    const user = messages.length % 2 === 0 ? "user1" : "user2";
-    setMessages([...messages, { id: messages.length + 1 , user: user, message: inputValue }]);
+    setMessage(inputValue);
+    sendMessage(inputValue);
+    // const user = messages.length % 2 === 0 ? "user1" : "user2";
+    // setMessages([...messages, { id: messages.length + 1 , user: user, message: inputValue }]);
     e.target[0].value = "";
   };
+  useEffect(() => {
+  
+    console.log(message , "||" ,  messages)
+   
+  }, [message , messages])
   
   return (
     <div className="h-screen">
@@ -51,7 +62,7 @@ const Page: React.FC = () => {
           Chat
         </h1>
 
-        <div
+        {/* <div
           ref={scrollRef}
           className="absolute bottom-20  w-[90%]  overflow-y-scroll flex flex-col"
         >
@@ -66,7 +77,7 @@ const Page: React.FC = () => {
               </div>
             </div>
           ))}
-        </div>
+        </div> */}
 
           <form onSubmit={(e) => handleSubmit(e)}className="absolute bottom-5 flex gap-x-2 items-center  w-full ">
           <input
