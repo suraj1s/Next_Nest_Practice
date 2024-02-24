@@ -6,6 +6,7 @@ class SocketService {
   constructor() {
     console.log("init socket service...");
     this._io = new Server({
+      connectionStateRecovery : {},
         cors : {
             allowedHeaders : ["*"],
             origin : "http://localhost:3000",
