@@ -15,7 +15,8 @@ const Page: React.FC = () => {
     if (scrollRef.current) {
       scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
     }
-    // setAllMessages((prev) => [...prev, ...messages])
+    if (messages)
+    setAllMessages((prev) => [...prev, messages])
   }, [messages]);
   const router = useRouter();
   useEffect(() => {
@@ -40,7 +41,7 @@ const Page: React.FC = () => {
       room: roomName,
     }
     sendMessage(data);
-    // setAllMessages((prev) => [...prev, data]);
+    setAllMessages((prev) => [...prev, data]);
     e.target[0].value = "";
   };
     
@@ -59,14 +60,14 @@ const Page: React.FC = () => {
           ref={scrollRef}
           className="absolute bottom-20  w-[90%]  overflow-y-scroll flex flex-col"
         >
-          {messages.map((message, id) => (
+          {allMessages?.map((message, id) => (
             <div
               key={id}
-              className={` ${message.user === userName ? "justify-end" : "justify-start"} flex gap-x-2 items-center`}
+              className={` ${message?.user === userName ? "justify-end" : "justify-start"} flex gap-x-2 items-center`}
             >
-              <div className="  bg-gray-800  px-2 py-1 rounded-lg "> {message.user} : </div>
+              <div className="  bg-gray-800  px-2 py-1 rounded-lg "> {message?.user} : </div>
               <div className="bg-slate-900 p-2 rounded-lg">
-                <p className="text-gray-200 font-medium">{message.message}</p>
+                <p className="text-gray-200 font-medium">{message?.message}</p>
               </div>
             </div>
           ))}
