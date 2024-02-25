@@ -43,7 +43,7 @@ const Page: React.FC = () => {
             >
               <div className="size-5 bg-gray-300 rounded-full"></div>
               <div className="bg-slate-900 p-2 rounded-lg">
-                <p className="text-gray-200 font-medium">{message}</p>
+                <p className="text-gray-200 font-medium">{message.message}</p>
               </div>
             </div>
           ))}

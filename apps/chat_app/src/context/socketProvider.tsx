@@ -6,9 +6,15 @@ interface SocketProviderProps {
   children?: React.ReactNode;
 }
 
+interface IMessageType {
+  message: string;
+  room: string;
+  user: string;
+
+}
 interface ISocketContext {
-  sendMessage: (msg: string) => any;
-  messages: string[];
+  sendMessage: (msg: IMessageType) => any;
+  messages: IMessageType[];
 }
 
 const SocketContext = React.createContext<ISocketContext | null>(null);
@@ -23,7 +29,7 @@ export const useSocket = () => {
 export const SocketProvider: React.FC<SocketProviderProps> = ({ children }) => {
   // socket is local state to store the socket connection and send messages to the server
   const [socket, setSocket] = useState<Socket>();
-  const [messages, setMessages] = useState<string[]>([]);
+  const [messages, setMessages] = useState<IMessageType[]>([]);
 
   const sendMessage: ISocketContext["sendMessage"] = useCallback(
     (msg) => {
@@ -35,7 +41,7 @@ export const SocketProvider: React.FC<SocketProviderProps> = ({ children }) => {
     [socket]
   );
 
-  const onMessageRec = useCallback((msg: string) => {
+  const onMessageRec = useCallback((msg: IMessageType) => {
     console.log("From Server Msg Rec", msg);
     const message= msg;
     setMessages((prev) => [...prev, message]);
