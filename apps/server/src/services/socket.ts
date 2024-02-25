@@ -6,7 +6,7 @@ class SocketService {
   constructor() {
     console.log("init socket service...");
     this._io = new Server({
-      connectionStateRecovery : {},
+      // connectionStateRecovery : {},
         cors : {
             allowedHeaders : ["*"],
             origin : "http://localhost:3000",
@@ -31,7 +31,8 @@ class SocketService {
       } }) => {
         console.log("new message recieved ", message);
         // io.emit("server:message",  message );
-        socket.to("room1").emit( "server:message" , message);
+        io.in(message.room).emit("server:message", message)
+        // socket.to(message.room).emit("server:message",  message );
       })
       socket.on("disconnect", () => {
         console.log("user disconnected msg:form server");
