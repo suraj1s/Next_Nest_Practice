@@ -1,20 +1,22 @@
-import { AppDataSource } from "./data-source"
-import { User } from "./entity/User"
+import http from 'http';
+import SocketService from './services/socket';
 
-AppDataSource.initialize().then(async () => {
+// as mentiond in typeorm docs
+import "reflect-metadata"
 
-    console.log("Inserting a new user into the database...")
-    const user = new User()
-    user.firstName = "Timber"
-    user.lastName = "Saw"
-    user.age = 25
-    await AppDataSource.manager.save(user)
-    console.log("Saved a new user with id: " + user.id)
+async function startServer() {
 
-    console.log("Loading users from the database...")
-    const users = await AppDataSource.manager.find(User)
-    console.log("Loaded users: ", users)
+    const socketService = new SocketService();
+    const httpServer = http.createServer();
+    const PORT = process.env.PORT || 8000;
 
-    console.log("Here you can setup and run express / fastify / any other framework.")
+    socketService.io.attach(httpServer);
 
-}).catch(error => console.log(error))
+    httpServer.listen(PORT , () => console.log(`Server is running on port ${PORT}`));
+
+    socketService.initListeners();
+
+    
+    }
+
+startServer();
