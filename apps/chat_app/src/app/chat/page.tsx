@@ -10,6 +10,8 @@ const Page: React.FC = () => {
   const [userName, setUserName] = useState('')
   const [roomName, setRoomName] = useState('')
   const [allMessages, setAllMessages] = useState<IMessageType[]>([])
+
+  
   useEffect(() => {
     // Scroll to the bottom of the div when messages change
     if (scrollRef.current) {
@@ -51,9 +53,8 @@ const Page: React.FC = () => {
       <div className="relative container max-h-[90%] h-full border-4 border-gray-300 rounded-3xl px-[2.5%] pt-16 pb-20 max-w-[55%] ">
         <div className="absolute top-5 font-bold text-2xl text-gray-300  ">
           <h1>
-           room: {roomName} 
+           {roomName} ({userName}) 
           </h1>
-          Chat
         </div>
 
         <div

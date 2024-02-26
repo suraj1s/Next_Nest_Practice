@@ -50,7 +50,7 @@ export const SocketProvider: React.FC<SocketProviderProps> = ({ children }) => {
   );
 
   const onMessageRec = useCallback((msg: IMessageType) => {
-    console.log("From Server ", msg);
+    // console.log("From Server ", msg);
     const message= msg;
     setMessages(message);
     // setMessages((prev) => [...prev, message]);
