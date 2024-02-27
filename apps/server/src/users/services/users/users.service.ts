@@ -16,12 +16,22 @@ export class UsersService {
   ) {}
 
   findUsers() {
-    return this.usersRepository.find({ relations: ['profile'] });
+    return this.usersRepository.find({ relations: ['profile', 'post'] });
   }
 
-  async findUserById(id: number | any) {
+  async findUserById(id: number) {
+    // const user = await this.usersRepository.findOneBy({ id });
+    const user = await this.usersRepository.findOne({
+      where: { id },
+      relations: ['profile', 'post'],
+    });
+    if (!user) {
+      throw new HttpException('User not found', HttpStatus.BAD_REQUEST);
+    }
+    return user;
+  }
+  async findUserOnlyById(id: number) {
     const user = await this.usersRepository.findOneBy({ id });
-    // const user = await this.usersRepository.findOne({ where: { id } });
     if (!user) {
       throw new HttpException('User not found', HttpStatus.BAD_REQUEST);
     }
@@ -50,7 +60,7 @@ export class UsersService {
     id: number,
     createUserProfileData: CreateUserProfileDto,
   ) {
-    const user = await this.findUserById(id);
+    const user = await this.findUserOnlyById(id);
     const newProfile = this.profilesRepository.create({
       ...createUserProfileData,
       createdAt: new Date(),
@@ -61,7 +71,7 @@ export class UsersService {
   }
 
   async createUserPost(id: number, postData: any) {
-    const user = await this.findUserById(id);
+    const user = await this.findUserOnlyById(id);
     const newPost = this.postsRepository.create({
       ...postData,
       createdAt: new Date(),
@@ -74,8 +84,7 @@ export class UsersService {
   }
 
   async findUserPosts(id: number) {
-    const user = await this.findUserById(id);
-    console.log(user)
+    const user = await this.findUserOnlyById(id);
     return this.postsRepository.find({ where: { user } });
   }
 }

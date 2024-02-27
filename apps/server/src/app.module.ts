@@ -6,6 +6,7 @@ import { User } from './typeorm/entities/User';
 import { UsersModule } from './users/users.module';
 import { Profile } from './typeorm/entities/Profile';
 import { Post } from './typeorm/entities/Post';
+import { AuthModule } from './auth/auth.module';
 @Module({
   imports: [
     TypeOrmModule.forRoot({
@@ -16,12 +17,13 @@ import { Post } from './typeorm/entities/Post';
       // password: "test",
       database: 'chat_project.db',
       synchronize: true, // This will create the database if it doesn't exist and detect changes and sync with db
-      logging: true,
+      logging: false,
       entities: [User, Profile, Post],
       subscribers: [],
       migrations: [],
     }),
     UsersModule,
+    AuthModule,
   ],
   controllers: [AppController],
   providers: [AppService],
