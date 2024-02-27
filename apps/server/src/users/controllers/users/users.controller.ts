@@ -1,13 +1,18 @@
 import {
   Body,
   Controller,
+  Delete,
   Get,
   Param,
   ParseIntPipe,
   Patch,
   Post,
 } from '@nestjs/common';
-import { CreateUserDto } from 'src/users/dtos/CreateUser.dtos';
+import {
+  CreateUserDto,
+  CreateUserProfileDto,
+} from 'src/users/dtos/CreateUser.dtos';
+import { UpdateUserDto } from 'src/users/dtos/UpdateUser.dtos';
 import { UsersService } from 'src/users/services/users/users.service';
 
 @Controller('users')
@@ -28,7 +33,7 @@ export class UsersController {
   @Patch(':id')
   updateUser(
     @Param('id', ParseIntPipe) id: number,
-    @Body() updateUserDto: CreateUserDto,
+    @Body() updateUserDto: UpdateUserDto,
   ) {
     return this.usersService.updateUser(id, updateUserDto);
   }
@@ -39,5 +44,19 @@ export class UsersController {
     const { confirmPassword, ...userDetail } = createUserDto;
     console.log(userDetail, confirmPassword);
     return this.usersService.createUser(userDetail);
+  }
+
+  @Delete(':id')
+  deleteUser(@Param('id', ParseIntPipe) id: number) {
+    return this.usersService.deleteUser(id);
+  }
+
+  @Post(':id/profile')
+  createProfile(
+    @Param('id', ParseIntPipe) id: number,
+    @Body() createUserProfileDto: CreateUserProfileDto,
+  ) {
+    // eslint-disable-next-line
+    return this.usersService.createUserProfile( id , createUserProfileDto);
   }
 }

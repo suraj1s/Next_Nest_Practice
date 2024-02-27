@@ -4,6 +4,7 @@ import { AppService } from './app.service';
 import { TypeOrmModule } from '@nestjs/TypeOrm';
 import { User } from './typeorm/entities/User';
 import { UsersModule } from './users/users.module';
+import { Profile } from './typeorm/entities/Profile';
 @Module({
   imports: [
     TypeOrmModule.forRoot({
@@ -15,7 +16,7 @@ import { UsersModule } from './users/users.module';
       database: 'chat_project.db',
       synchronize: true, // This will create the database if it doesn't exist and detect changes and sync with db
       logging: true,
-      entities: [User],
+      entities: [User, Profile],
       subscribers: [],
       migrations: [],
     }),
