@@ -1,5 +1,6 @@
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
+import { Post } from 'src/typeorm/entities/Post';
 import { Profile } from 'src/typeorm/entities/Profile';
 import { User } from 'src/typeorm/entities/User';
 import { CreateUserProfileDto } from 'src/users/dtos/CreateUser.dtos';
@@ -11,14 +12,20 @@ export class UsersService {
   constructor(
     @InjectRepository(User) private usersRepository: Repository<User>,
     @InjectRepository(Profile) private profilesRepository: Repository<Profile>,
+    @InjectRepository(Post) private postsRepository: Repository<Post>,
   ) {}
 
   findUsers() {
-    return this.usersRepository.find();
+    return this.usersRepository.find({ relations: ['profile'] });
   }
 
-  findUserById(id: number | any) {
-    return this.usersRepository.findOne({ where: { id } });
+  async findUserById(id: number | any) {
+    const user = await this.usersRepository.findOneBy({ id });
+    // const user = await this.usersRepository.findOne({ where: { id } });
+    if (!user) {
+      throw new HttpException('User not found', HttpStatus.BAD_REQUEST);
+    }
+    return user;
   }
 
   updateUser(id: number, userDetails: UpdateUserParams) {
@@ -43,18 +50,32 @@ export class UsersService {
     id: number,
     createUserProfileData: CreateUserProfileDto,
   ) {
-    const user = await this.usersRepository.findOne({ where: { id } });
-    if (!user) {
-      throw new HttpException('User not found', HttpStatus.BAD_REQUEST);
-    }
-
+    const user = await this.findUserById(id);
     const newProfile = this.profilesRepository.create({
-      // this is not a promise (sync operation)
       ...createUserProfileData,
       createdAt: new Date(),
     });
-    const savedProfile = await this.usersRepository.save(newProfile); //this is a promise (async operation)
+    const savedProfile = await this.profilesRepository.save(newProfile);
     user.profile = savedProfile;
     return this.usersRepository.save(user);
+  }
+
+  async createUserPost(id: number, postData: any) {
+    const user = await this.findUserById(id);
+    const newPost = this.postsRepository.create({
+      ...postData,
+      createdAt: new Date(),
+      user,
+    });
+    const savedPost = await this.postsRepository.save(newPost);
+    return savedPost;
+    // console.log(savedPost)
+    // return this.postsRepository.save(savedPost);
+  }
+
+  async findUserPosts(id: number) {
+    const user = await this.findUserById(id);
+    console.log(user)
+    return this.postsRepository.find({ where: { user } });
   }
 }

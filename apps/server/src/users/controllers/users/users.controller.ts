@@ -11,6 +11,7 @@ import {
 import {
   CreateUserDto,
   CreateUserProfileDto,
+  CreateUserPostDto,
 } from 'src/users/dtos/CreateUser.dtos';
 import { UpdateUserDto } from 'src/users/dtos/UpdateUser.dtos';
 import { UsersService } from 'src/users/services/users/users.service';
@@ -58,5 +59,19 @@ export class UsersController {
   ) {
     // eslint-disable-next-line
     return this.usersService.createUserProfile( id , createUserProfileDto);
+  }
+
+  @Post(':id/posts')
+  createPost(
+    @Param('id', ParseIntPipe) id: number,
+    @Body() createUserPostDto: CreateUserPostDto,
+  ) {
+    // eslint-disable-next-line
+    return this.usersService.createUserPost( id , createUserPostDto);
+  }
+
+  @Get(':id/posts')
+  getUserPosts(@Param('id', ParseIntPipe) id: number) {
+    return this.usersService.findUserPosts(id);
   }
 }

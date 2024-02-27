@@ -10,3 +10,8 @@ export class CreateUserProfileDto {
   lastName: string;
   age: number;
 }
+
+export class CreateUserPostDto {
+  title: string;
+  description: string;
+}
