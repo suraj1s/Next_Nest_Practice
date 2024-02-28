@@ -1,13 +1,11 @@
-
-import { SocketProvider } from "@/context/socketProvider";
 export default function ChatLayout({
   children,
 }: {
   children: any;
 }) {
   return (
-    <SocketProvider >
+    <div >
       {children}
-    </SocketProvider>
+    </div>
   );
 }

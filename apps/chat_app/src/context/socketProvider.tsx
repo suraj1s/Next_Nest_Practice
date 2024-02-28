@@ -3,12 +3,19 @@ import React, { useCallback, useContext, useEffect, useState } from "react";
 import { io, Socket } from "socket.io-client";
 
 interface SocketProviderProps {
-  children?: React.ReactNode;
+  children?:any;
 }
 
+export interface IMessageType {
+  message: string;
+  room: string;
+  user: string;
+
+}
 interface ISocketContext {
-  sendMessage: (msg: string) => any;
-  messages: string[];
+  sendMessage: (msg: IMessageType) => any;
+  createRoom: (room: string) => any;
+  messages: IMessageType | undefined;
 }
 
 const SocketContext = React.createContext<ISocketContext | null>(null);
@@ -23,29 +30,36 @@ export const useSocket = () => {
 export const SocketProvider: React.FC<SocketProviderProps> = ({ children }) => {
   // socket is local state to store the socket connection and send messages to the server
   const [socket, setSocket] = useState<Socket>();
-  const [messages, setMessages] = useState<string[]>([]);
+  const [messages, setMessages] = useState<IMessageType >();
 
   const sendMessage: ISocketContext["sendMessage"] = useCallback(
     (msg) => {
-      console.log("Send Message", msg);
       if (socket) {
-        socket.emit("client:message", { message: msg });
+        socket.emit("client:message",  { message : msg} );
+      }
+    },
+    [socket]
+  );
+  const createRoom: ISocketContext["createRoom"] = useCallback(
+    (room) => {
+      if (socket) {
+        socket.emit("join:room", room );
       }
     },
     [socket]
   );
 
-  const onMessageRec = useCallback((msg: string) => {
-    console.log("From Server Msg Rec", msg);
+  const onMessageRec = useCallback((msg: IMessageType) => {
+    // console.log("From Server ", msg);
     const message= msg;
-    setMessages((prev) => [...prev, message]);
+    setMessages(message);
+    // setMessages((prev) => [...prev, message]);
   }, []);
 
   useEffect(() => {
     const _socket = io("http://localhost:8000");
-    _socket.on("server:message", (msg) => console.log( "from server " , msg));
-    // _socket.on("server:message", onMessageRec);
-
+    // _socket.on("server:message", (msg) => console.log( "from server " , msg));
+    _socket.on("server:message", onMessageRec);
     setSocket(_socket);
     return () => {
       _socket.off("server:message", onMessageRec);
@@ -55,7 +69,7 @@ export const SocketProvider: React.FC<SocketProviderProps> = ({ children }) => {
   }, []);
 
   return (
-    <SocketContext.Provider value={{ sendMessage, messages }}>
+    <SocketContext.Provider value={{ sendMessage, messages , createRoom }}>
       {children}
     </SocketContext.Provider>
   );

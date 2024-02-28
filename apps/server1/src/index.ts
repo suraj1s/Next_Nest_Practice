@@ -1,6 +1,9 @@
 import http from 'http';
 import SocketService from './services/socket';
 
+// as mentiond in typeorm docs
+import "reflect-metadata"
+
 async function startServer() {
 
     const socketService = new SocketService();
