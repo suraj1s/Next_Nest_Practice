@@ -38,6 +38,14 @@ export class UsersService {
     return user;
   }
 
+  async findUserOnlyByUsername(userName: string) {
+    const user = await this.usersRepository.findOneBy({ userName });
+    if (!user) {
+      throw new HttpException('User not found', HttpStatus.BAD_REQUEST);
+    }
+    return user;
+  }
+
   updateUser(id: number, userDetails: UpdateUserParams) {
     return this.usersRepository.update(id, userDetails);
   }

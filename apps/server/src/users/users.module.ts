@@ -10,5 +10,6 @@ import { Post } from 'src/typeorm/entities/Post';
   imports: [TypeOrmModule.forFeature([User, Profile, Post])],
   controllers: [UsersController],
   providers: [UsersService],
+  exports: [UsersService], // Export UsersService if it needs to be used in other modules
 })
 export class UsersModule {}
