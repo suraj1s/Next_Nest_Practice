@@ -2,7 +2,7 @@ import { Module } from '@nestjs/common';
 import { AuthController } from './controllers/auth/auth.controller';
 import { AuthService } from './services/auth/auth.service';
 import { PassportModule } from '@nestjs/passport';
-import { LocalStrategy } from './strategy/local.strategy';
+import { LocalStrategy } from './strategies/local.strategy';
 import { UsersService } from 'src/users/services/users/users.service';
 import { UsersModule } from 'src/users/users.module';
 import { User } from 'src/typeorm/entities/User';
@@ -15,7 +15,7 @@ import { JwtModule } from '@nestjs/jwt';
 
 @Module({
   imports: [
-    PassportModule,
+    PassportModule.register({ defaultStrategy: 'local' }),
     UsersModule,
     TypeOrmModule.forFeature([User, Profile, Post]),
     JwtModule.register({

@@ -7,6 +7,7 @@ import { UsersModule } from './users/users.module';
 import { Profile } from './typeorm/entities/Profile';
 import { Post } from './typeorm/entities/Post';
 import { AuthModule } from './auth/auth.module';
+import { ReAuthModule } from './re-auth/re-auth.module';
 @Module({
   imports: [
     TypeOrmModule.forRoot({
@@ -24,6 +25,7 @@ import { AuthModule } from './auth/auth.module';
     }),
     UsersModule,
     AuthModule,
+    ReAuthModule,
   ],
   controllers: [AppController],
   providers: [AppService],
