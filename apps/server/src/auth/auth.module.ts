@@ -9,6 +9,7 @@ import { User } from 'src/typeorm/entities/User';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { Profile } from 'src/typeorm/entities/Profile';
 import { Post } from 'src/typeorm/entities/Post';
+import { JwtModule } from '@nestjs/jwt';
 
 // import { UserRepository } from 'src/users/repositories/user.repository'; // Import UserRepository
 
@@ -17,6 +18,10 @@ import { Post } from 'src/typeorm/entities/Post';
     PassportModule,
     UsersModule,
     TypeOrmModule.forFeature([User, Profile, Post]),
+    JwtModule.register({
+      secret: 'thisIsSecretKey123',
+      signOptions: { expiresIn: '1h' },
+    }),
   ],
   controllers: [AuthController],
   providers: [AuthService, LocalStrategy, UsersService], // Include UserRepository in the providers array
