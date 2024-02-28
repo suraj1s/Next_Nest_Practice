@@ -1,38 +1,36 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
+import { STATUS_CODES } from 'http';
+import { UsersService } from 'src/users/services/users/users.service';
 
-type User = {
-  userId: number;
-  username: string;
-  password: string;
-};
 @Injectable()
 export class AuthService {
-  constructor(private jwtService: JwtService) {}
+  constructor(
+    private readonly userService: UsersService,
+    private readonly jwtService: JwtService,
+  ) {}
 
-  user: User[] = [
-    { userId: 1, username: 'aminbista', password: 'aminpassword' },
-    { userId: 2, username: 'jhondoe', password: 'jhonpassword' },
-  ];
+  async validateUser(authPayload: any): Promise<any> {
+    const { userName, password } = authPayload;
+    const user = await this.userService.findUserOnlyByUsername(userName);
 
-  getUser(username: string) {
-    return this.user.find((user) => user.username === username);
-  }
-
-  async validateUser(username: string, pass: string): Promise<any> {
-    const user = await this.getUser(username);
-    if (user && user.password === pass) {
-      const { password, ...result } = user;
-      console.log(password);
-      return result;
+    if (user === undefined) {
+      throw new UnauthorizedException(
+        'Invalid credentials',
+        STATUS_CODES.UNAUTHORIZED,
+      );
     }
-    return null;
-  }
-
-  async login(user: any) {
-    const payload = { username: user.username, sub: user.userId };
-    return {
-      access_token: this.jwtService.sign(payload),
-    };
+    if (user && user.password === password) {
+      const userWithoutPassowrd = {
+        userName: user.userName,
+        id: user.id,
+      };
+      return this.jwtService.sign(userWithoutPassowrd);
+    } else {
+      throw new UnauthorizedException(
+        'Invalid credentials',
+        STATUS_CODES.UNAUTHORIZED,
+      );
+    }
   }
 }
