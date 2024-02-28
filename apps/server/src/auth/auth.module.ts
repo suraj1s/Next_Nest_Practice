@@ -1,22 +1,29 @@
 import { Module } from '@nestjs/common';
-import { AuthService } from './auth.service';
-import { AuthController } from './auth.controller';
+import { AuthController } from './controllers/auth/auth.controller';
+import { AuthService } from './services/auth/auth.service';
 import { PassportModule } from '@nestjs/passport';
-import { LocalStrategy } from './local.strategy';
+import { LocalStrategy } from './strategies/local.strategy';
+import { UsersService } from 'src/users/services/users/users.service';
+import { UsersModule } from 'src/users/users.module';
+import { User } from 'src/typeorm/entities/User';
+import { TypeOrmModule } from '@nestjs/typeorm';
+import { Profile } from 'src/typeorm/entities/Profile';
+import { Post } from 'src/typeorm/entities/Post';
 import { JwtModule } from '@nestjs/jwt';
+
+// import { UserRepository } from 'src/users/repositories/user.repository'; // Import UserRepository
 
 @Module({
   imports: [
-    PassportModule.register({
-      session: true,
-    }),
+    PassportModule.register({ defaultStrategy: 'local' }),
+    UsersModule,
+    TypeOrmModule.forFeature([User, Profile, Post]),
     JwtModule.register({
-      secret: 'sarcasm',
-      signOptions: { expiresIn: '60s' },
+      secret: 'thisIsSecretKey123',
+      signOptions: { expiresIn: '1h' },
     }),
   ],
-  providers: [AuthService, LocalStrategy],
   controllers: [AuthController],
-  exports: [AuthService],
+  providers: [AuthService, LocalStrategy, UsersService], // Include UserRepository in the providers array
 })
 export class AuthModule {}
