@@ -10,6 +10,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { Profile } from 'src/typeorm/entities/Profile';
 import { Post } from 'src/typeorm/entities/Post';
 import { JwtModule } from '@nestjs/jwt';
+import { JWTStrategy } from './strategies/jwt.strategy';
 
 // import { UserRepository } from 'src/users/repositories/user.repository'; // Import UserRepository
 
@@ -24,6 +25,6 @@ import { JwtModule } from '@nestjs/jwt';
     }),
   ],
   controllers: [AuthController],
-  providers: [AuthService, LocalStrategy, UsersService], // Include UserRepository in the providers array
+  providers: [AuthService, LocalStrategy, UsersService, JWTStrategy], // Include UserRepository in the providers array
 })
 export class AuthModule {}
