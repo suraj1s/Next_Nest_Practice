@@ -1,6 +1,7 @@
 import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { STATUS_CODES } from 'http';
+import { AuthPayloadDto } from 'src/auth/authDto/auth.dto';
 import { UsersService } from 'src/users/services/users/users.service';
 
 @Injectable()
@@ -10,7 +11,7 @@ export class AuthService {
     private readonly jwtService: JwtService,
   ) {}
 
-  async validateUser(authPayload: any): Promise<any> {
+  async validateUser(authPayload: AuthPayloadDto): Promise<any> {
     const { userName, password } = authPayload;
     const user = await this.userService.findUserOnlyByUsername(userName);
 

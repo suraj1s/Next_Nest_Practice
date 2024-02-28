@@ -1,24 +1,3 @@
-// import { Strategy } from 'passport-local';
-// import { PassportStrategy } from '@nestjs/passport';
-// import { Injectable, UnauthorizedException } from '@nestjs/common';
-// import { AuthService } from './auth.service';
-
-// @Injectable()
-// export class LocalStrategy extends PassportStrategy(Strategy) {
-//   constructor(private authService: AuthService) {
-//     super();
-//   }
-
-//   async validate(userName: string, password: string): Promise<any> {
-//     console.log(userName, password, 'local strategy');
-//     const user = await this.authService.validateUser(userName, password);
-//     if (!user) {
-//       throw new UnauthorizedException();
-//     }
-//     return user;
-//   }
-// }
-
 import {
   ExecutionContext,
   Injectable,
@@ -27,7 +6,7 @@ import {
 import { PassportStrategy } from '@nestjs/passport';
 import { STATUS_CODES } from 'http';
 import { Strategy } from 'passport-local';
-import { AuthService } from './auth.service';
+import { AuthService } from '../services/auth/auth.service';
 
 @Injectable()
 export class LocalStrategy extends PassportStrategy(Strategy, 'local') {
@@ -36,12 +15,14 @@ export class LocalStrategy extends PassportStrategy(Strategy, 'local') {
     super();
   }
 
+  getRequest(context: ExecutionContext) {
+    const request = context.switchToHttp().getRequest();
+    console.log(request.body, 'form local strategy');
+    return request;
+  }
+
   async validate(userName: string, password: string): Promise<any> {
-    console.log(
-      userName,
-      password,
-      'username and password from local strategy',
-    );
+    console.log(userName, password, 'username and password');
 
     const user = await this.authService.validateUser({ userName, password });
     if (!user) {

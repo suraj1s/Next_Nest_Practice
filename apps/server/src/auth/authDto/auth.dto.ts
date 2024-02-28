@@ -1,5 +1,4 @@
-export interface User {
-  userId: number;
+export class AuthPayloadDto {
   userName: string;
   password: string;
 }
