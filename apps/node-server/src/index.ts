@@ -8,7 +8,7 @@ async function startServer() {
 
     const socketService = new SocketService();
     const httpServer = http.createServer();
-    const PORT = process.env.PORT || 8000;
+    const PORT = process.env.PORT || 8001;
 
     socketService.io.attach(httpServer);
 

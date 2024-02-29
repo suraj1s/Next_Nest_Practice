@@ -18,7 +18,7 @@
   },
   "packageManager": "yarn@1.22.19",
   "workspaces": [
-    "apps/server",
+    "apps/nest-server",
     "apps/chat_app",
     "packages/*"
   ]
