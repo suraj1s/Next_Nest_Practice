@@ -1,5 +1,6 @@
 import {
   BadRequestException,
+  ForbiddenException,
   Injectable,
   UnauthorizedException,
 } from '@nestjs/common';
@@ -17,6 +18,7 @@ export class AuthService {
     private readonly jwtService: JwtService,
   ) {}
 
+  // this is without refresh token ussed in local strategy
   async validateUser(authPayload: AuthPayloadDto): Promise<any> {
     const { userName, password } = authPayload;
     const user = await this.usersService.findUserOnlyByUsername(userName);
@@ -44,14 +46,16 @@ export class AuthService {
   async signUp(createUserDto: any): Promise<any> {
     // Check if user exists
     const userExists = await this.usersService.findUserOnlyByUsername(
-      createUserDto.username,
+      createUserDto.userName,
     );
+    // console.log(userExists, 'userExists');
     if (userExists) {
       throw new BadRequestException('User already exists');
     }
 
     // Hash password
     const hash = await this.hashData(createUserDto.password);
+    console.log(hash, 'hash');
     const newUser = await this.usersService.createUser({
       ...createUserDto,
       password: hash,
@@ -63,7 +67,7 @@ export class AuthService {
 
   async signIn(data: any) {
     // Check if user exists
-    const user = await this.usersService.findUserOnlyByUsername(data.username);
+    const user = await this.usersService.findUserOnlyByUsername(data.userName);
     if (!user) throw new BadRequestException('User does not exist');
     const passwordMatches = await argon2.verify(user.password, data.password);
     if (!passwordMatches)
@@ -77,6 +81,22 @@ export class AuthService {
   async logout(userId: number) {
     return this.usersService.updateUser(userId, { refreshToken: null });
   }
+  async refreshTokens(userId: number, refreshToken: string) {
+    const user = await this.usersService.findUserOnlyById(userId);
+    if (!user || !user.refreshToken)
+      throw new ForbiddenException('Access Denied');
+    const refreshTokenMatches = await argon2.verify(
+      user.refreshToken,
+      refreshToken,
+    );
+    if (!refreshTokenMatches) throw new ForbiddenException('Access Denied');
+    const tokens = await this.getTokens(user.id, user.userName);
+    // this is for circular refresh token update
+    // await this.updateRefreshToken(user.id, tokens.refreshToken);
+    return {
+      accessToken: tokens.accessToken,
+    };
+  }
 
   hashData(data: string) {
     return argon2.hash(data);
@@ -88,26 +108,26 @@ export class AuthService {
       refreshToken: hashedRefreshToken,
     });
   }
-  async getTokens(userId: number, username: string) {
+  async getTokens(userId: number, userName: string) {
     const [accessToken, refreshToken] = await Promise.all([
       this.jwtService.signAsync(
         {
-          sub: userId,
-          username,
+          userId: userId,
+          userName,
         },
         {
           secret: JWT_AUTH_TOKEN_SECRET,
-          expiresIn: '15m',
+          expiresIn: '30s',
         },
       ),
       this.jwtService.signAsync(
         {
-          sub: userId,
-          username,
+          userId: userId,
+          userName,
         },
         {
           secret: JWT_REFRESH_TOKEN_SECRET,
-          expiresIn: '7d',
+          expiresIn: '3m',
         },
       ),
     ]);

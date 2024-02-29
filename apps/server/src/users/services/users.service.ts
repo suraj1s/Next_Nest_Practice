@@ -39,10 +39,12 @@ export class UsersService {
   }
 
   async findUserOnlyByUsername(userName: string) {
-    const user = await this.usersRepository.findOneBy({ userName });
-    if (!user) {
-      throw new HttpException('User not found', HttpStatus.BAD_REQUEST);
+    console.log(userName, 'userName from findUserOnlyByUsername');
+    if (!userName) {
+      throw new HttpException('NO UserName provided ', HttpStatus.BAD_REQUEST);
     }
+    const user = await this.usersRepository.findOneBy({ userName: userName });
+    console.log(user, 'user from findUserOnlyByUsername');
     return user;
   }
 

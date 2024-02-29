@@ -3,7 +3,7 @@ import { ExtractJwt, Strategy } from 'passport-jwt';
 import { JWT_AUTH_TOKEN_SECRET } from 'env.constants';
 
 type JwtPayload = {
-  sub: string;
+  userId: string;
   username: string;
 };
 
