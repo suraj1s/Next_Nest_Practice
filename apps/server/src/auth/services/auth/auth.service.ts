@@ -34,4 +34,9 @@ export class AuthService {
       );
     }
   }
+  async signup(authPayload: AuthPayloadDto) {
+    const newUser = await this.userService.createUser(authPayload);
+    console.log(newUser);
+    return newUser;
+  }
 }

@@ -9,6 +9,12 @@ import { AuthService } from 'src/auth/services/auth/auth.service';
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
+  @Post('signup')
+  signup(@Body() authPayload: AuthPayloadDto) {
+    console.log(authPayload, 'authPayload');
+    return this.authService.signup(authPayload);
+  }
+
   @Post('login')
   @UseGuards(LocalGaurd)
   login(@Body() authPayload: AuthPayloadDto, @Req() req: Request) {

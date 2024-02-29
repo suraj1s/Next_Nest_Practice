@@ -1,11 +1,17 @@
 import { PassportStrategy } from '@nestjs/passport';
 import { ExtractJwt, Strategy } from 'passport-jwt';
-import { AuthService } from '../services/auth/auth.service';
 import { JWT_AUTH_TOKEN_SECRET } from 'env.constants';
 
-export class JWTStrategy extends PassportStrategy(Strategy) {
-  // here by passing strategy we are telling that we are using jwt strategy
-  constructor(private authService: AuthService) {
+type JwtPayload = {
+  sub: string;
+  username: string;
+};
+
+export class JWTAccessTokenStrategy extends PassportStrategy(
+  Strategy,
+  'jwt-access-token',
+) {
+  constructor() {
     super({
       jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(), // this is the way to extract token from request like from header or from query parameter or form the body of the request itself
       ignoreExpiration: false, // if we want to ignore the expiration of the token then we can set it to true
@@ -13,7 +19,7 @@ export class JWTStrategy extends PassportStrategy(Strategy) {
     });
   }
 
-  async validate(payload: any) {
+  async validate(payload: JwtPayload) {
     console.log(payload, 'from jwt strategy');
     return payload;
   }

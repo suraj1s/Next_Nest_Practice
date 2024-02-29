@@ -12,7 +12,6 @@ import { AuthService } from '../services/auth/auth.service';
 export class LocalStrategy extends PassportStrategy(Strategy, 'local') {
   // UsersService is injected into the LocalStrategy class using the constructor which is imported in auth.module.ts in imports array
   constructor(private readonly authService: AuthService) {
-    
     super({
       usernameField: 'userName',
       passwordField: 'password',

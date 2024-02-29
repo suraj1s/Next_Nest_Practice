@@ -11,8 +11,9 @@ import { Profile } from 'src/typeorm/entities/Profile';
 import { Post } from 'src/typeorm/entities/Post';
 import { JwtModule } from '@nestjs/jwt';
 import { JWTStrategy } from './strategies/jwt.strategy';
-
-// import { UserRepository } from 'src/users/repositories/user.repository'; // Import UserRepository
+import { JWT_AUTH_TOKEN_SECRET } from 'env.constants';
+import { JWTAccessTokenStrategy } from './strategies/accessToken.strategy';
+import { JWTRefreshTokenStrategy } from './strategies/refreshToken.strategy';
 
 @Module({
   imports: [
@@ -20,11 +21,18 @@ import { JWTStrategy } from './strategies/jwt.strategy';
     UsersModule,
     TypeOrmModule.forFeature([User, Profile, Post]),
     JwtModule.register({
-      secret: 'thisIsSecretKey123',
+      secret: JWT_AUTH_TOKEN_SECRET,
       signOptions: { expiresIn: '1h' },
     }),
   ],
   controllers: [AuthController],
-  providers: [AuthService, LocalStrategy, UsersService, JWTStrategy], // Include UserRepository in the providers array
+  providers: [
+    AuthService,
+    UsersService,
+    LocalStrategy,
+    JWTStrategy,
+    JWTAccessTokenStrategy,
+    JWTRefreshTokenStrategy,
+  ],
 })
 export class AuthModule {}

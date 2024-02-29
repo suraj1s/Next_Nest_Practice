@@ -26,6 +26,9 @@ export class User {
   @Column({ nullable: true })
   authStatus: string;
 
+  @Column({ nullable: false, unique: true })
+  refreshToken: string;
+
   @OneToOne(() => Profile)
   @JoinColumn()
   profile: Profile;
