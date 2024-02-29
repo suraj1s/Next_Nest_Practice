@@ -1,6 +1,6 @@
 import { PassportStrategy } from '@nestjs/passport';
 import { ExtractJwt, Strategy } from 'passport-jwt';
-import { AuthService } from '../services/auth/auth.service';
+import { AuthService } from '../services/auth.service';
 import { JWT_AUTH_TOKEN_SECRET } from 'env.constants';
 
 export class JWTStrategy extends PassportStrategy(Strategy) {

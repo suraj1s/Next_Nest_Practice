@@ -14,7 +14,7 @@ import {
   CreateUserPostDto,
 } from 'src/users/dtos/CreateUser.dtos';
 import { UpdateUserDto } from 'src/users/dtos/UpdateUser.dtos';
-import { UsersService } from 'src/users/services/users/users.service';
+import { UsersService } from 'src/users/services/users.service';
 
 @Controller('users')
 export class UsersController {

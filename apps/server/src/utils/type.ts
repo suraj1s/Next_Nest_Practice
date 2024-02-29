@@ -8,6 +8,7 @@ export type CreateUserParams = {
 export type UpdateUserParams = {
   userName?: string;
   password?: string;
+  refreshToken?: string;
 };
 
 export type UserValidation = {

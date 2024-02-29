@@ -3,7 +3,7 @@ import { Request } from 'express';
 import { AuthPayloadDto } from 'src/auth/authDto/auth.dto';
 import { JWTAuthGaurd } from 'src/auth/gaurds/jwt.gaurd';
 import { LocalGaurd } from 'src/auth/gaurds/local.gaurd';
-import { AuthService } from 'src/auth/services/auth/auth.service';
+import { AuthService } from 'src/auth/services/auth.service';
 
 @Controller('auth')
 export class AuthController {
@@ -12,9 +12,14 @@ export class AuthController {
   @Post('signup')
   signup(@Body() authPayload: AuthPayloadDto) {
     console.log(authPayload, 'authPayload');
-    return this.authService.signup(authPayload);
+    return this.authService.signUp(authPayload);
+  }
+  @Post('signin')
+  signin(@Body() data: any) {
+    return this.authService.signIn(data);
   }
 
+  // this is without refresh token
   @Post('login')
   @UseGuards(LocalGaurd)
   login(@Body() authPayload: AuthPayloadDto, @Req() req: Request) {
