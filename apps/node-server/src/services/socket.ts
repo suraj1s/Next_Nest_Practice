@@ -1,3 +1,4 @@
+// @ts-ignore
 import { Server } from "socket.io";
 
 class SocketService {
@@ -18,7 +19,7 @@ class SocketService {
   public initListeners() {
     const io = this._io;
     console.log("initiliazing socket listeners...");
-    io.on("connect", (socket) => {
+    io.on("connect", (socket : any) => {
       console.log("a new socket connected", socket.id);
       socket.on("join:room", (room: string) => {
         const rooms = io.sockets.adapter.rooms;

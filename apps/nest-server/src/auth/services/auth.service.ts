@@ -95,6 +95,8 @@ export class AuthService {
     // await this.updateRefreshToken(user.id, tokens.refreshToken);
     return {
       accessToken: tokens.accessToken,
+      // we should send new refresh token for circular refresh token update
+      // refreshToken: tokens.refreshToken,
     };
   }
 
