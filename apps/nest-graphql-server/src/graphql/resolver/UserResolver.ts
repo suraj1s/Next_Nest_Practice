@@ -1,5 +1,6 @@
-import { Args, Int, Query, Resolver } from '@nestjs/graphql';
-import { User } from '../User';
+import { Args, Int, Parent, Query, ResolveField, Resolver } from '@nestjs/graphql';
+import { User } from '../models/User';
+import { UserSetting } from '../models/UserSetting';
 
 const userData = [
   {
@@ -30,7 +31,17 @@ export class UserResolver {
   }
 
   @Query((returns) => User, { nullable: true })
+  // argument id of type Int is passed to the getUserById method and refered as id
   getUserById(@Args('id', { type: () => Int }) id: number) {
     return userData.find((user) => user.id === id);
+  }
+
+  @ResolveField((returns) => UserSetting , { nullable: true, name: 'settings' })
+  getUserSettings(@Parent() user: User) {
+    return {
+      // userSettingsData.find((userSetting) => userSetting.userId === user.id)
+      userId: user.id,
+      recievedNotification: true,
+    };
   }
 }
