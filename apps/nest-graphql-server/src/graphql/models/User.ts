@@ -25,7 +25,7 @@ export class User {
   @Field({ nullable: true })
   nickName: string;
 
-  @Column()
-  @Field({ nullable: true })
-  settings?: UserSetting;
+  // @Column()
+  // @Field({ nullable: true })
+  // settings?: UserSetting;
 }

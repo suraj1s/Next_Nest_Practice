@@ -1,0 +1,10 @@
+# this is schema first approach
+type Book {
+  id: ID!
+  title: String!
+  price: Float!
+}
+
+type Query {
+  getAllBooks: [Book]
+}

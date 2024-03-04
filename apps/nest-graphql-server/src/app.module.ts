@@ -1,15 +1,22 @@
 import { ApolloDriver, ApolloDriverConfig } from '@nestjs/apollo';
 import { Module } from '@nestjs/common';
 import { GraphQLModule } from '@nestjs/graphql';
-import { UserResolver } from './graphql/resolver/UserResolver';
+// import { UserResolver } from './graphql/resolver/UserResolver';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { User } from './graphql/models/User';
+import { BookModule } from './book/book.module';
 
 @Module({
   imports: [
     GraphQLModule.forRoot<ApolloDriverConfig>({
       driver: ApolloDriver,
-      autoSchemaFile: 'src/graphql/schema.gql',
+
+      //  this is for code first approach
+      autoSchemaFile: 'src/graphql/schema.gql', // this will create a schema file in the project and load it
+
+      // this is for schema first approach
+      // typePaths: ['./**/*.graphql'], // this will load all .graphql files in the project and merge them into one schema
+      playground: true,
     }),
     TypeOrmModule.forRoot({
       type: 'sqlite',
@@ -24,8 +31,9 @@ import { User } from './graphql/models/User';
       subscribers: [],
       migrations: [],
     }),
+    BookModule,
   ],
   controllers: [],
-  providers: [UserResolver],
+  providers: [],
 })
 export class AppModule {}
