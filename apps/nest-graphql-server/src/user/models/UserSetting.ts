@@ -7,5 +7,4 @@ export class UserSetting {
 
   @Field({ defaultValue: false, nullable: false })
   recievedNotification: boolean;
-
 }
