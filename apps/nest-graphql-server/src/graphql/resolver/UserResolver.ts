@@ -1,6 +1,15 @@
-import { Args, Int, Parent, Query, ResolveField, Resolver } from '@nestjs/graphql';
+import {
+  Args,
+  Int,
+  Mutation,
+  Parent,
+  Query,
+  ResolveField,
+  Resolver,
+} from '@nestjs/graphql';
 import { User } from '../models/User';
 import { UserSetting } from '../models/UserSetting';
+import { CreateUserInput } from '../utils/createUserInput';
 
 const userData = [
   {
@@ -22,8 +31,23 @@ const userData = [
     password: 'password',
   },
 ];
+const userSettingsData = [
+  {
+    userId: 1,
+    recievedNotification: true,
+  },
+  {
+    userId: 2,
+    recievedNotification: false,
+  },
+  {
+    userId: 3,
+    recievedNotification: true,
+  },
+];
+const tmepId = 3;
 
-@Resolver()
+@Resolver((of) => User)
 export class UserResolver {
   @Query((returns) => [User])
   getUsers() {
@@ -36,12 +60,29 @@ export class UserResolver {
     return userData.find((user) => user.id === id);
   }
 
-  @ResolveField((returns) => UserSetting , { nullable: true, name: 'settings' })
-  getUserSettings(@Parent() user: User) {
-    return {
-      // userSettingsData.find((userSetting) => userSetting.userId === user.id)
-      userId: user.id,
-      recievedNotification: true,
-    };
+  @ResolveField((returns) => UserSetting, { nullable: true, name: 'settings' })
+  getUserSettings(@Parent() user: User): UserSetting | null {
+    const userSetting = userSettingsData.find(
+      (setting) => setting.userId === user.id,
+    );
+
+    if (!userSetting) {
+      // Handle the case when user settings are not found
+      // You can either return a default value or throw an error
+      return null;
+    }
+
+    return userSetting;
+  }
+
+  @Mutation((returns) => User)
+  createUser(
+    // @Args('username') username: string,
+    // @Args('password') password: string,
+    @Args('createUserData') createUserData: CreateUserInput,
+  ) {
+    // const newUser = { username, password, id: id + 1 };
+    const newUser = { ...createUserData, id: tmepId + 1 };
+    return newUser;
   }
 }
