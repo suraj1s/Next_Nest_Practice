@@ -16,6 +16,7 @@ type Query {
 type Mutation {
   addBook(createBookData: CreateBookInput!): Book!
   updateBook(updateBookData: UpdateBookInput!): Book!
+  deleteBook(id: Float!): [Book!]!
 }
 
 input CreateBookInput {

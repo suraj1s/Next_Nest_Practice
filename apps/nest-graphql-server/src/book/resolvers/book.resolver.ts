@@ -58,6 +58,12 @@ export class BookResolver {
     }
     return book;
   }
+
+  @Mutation((returns) => [Book])
+  deleteBook(@Args('id') id: number) {
+    const newBook = bookData.filter((book) => book.id !== id);
+    return newBook;
+  }
 }
 
 // schema first approach
