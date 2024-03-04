@@ -3,8 +3,9 @@ import { Module } from '@nestjs/common';
 import { GraphQLModule } from '@nestjs/graphql';
 // import { UserResolver } from './graphql/resolver/UserResolver';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { User } from './graphql/models/User';
+import { User } from './user/models/User';
 import { BookModule } from './book/book.module';
+import { UserModule } from './user/user.module';
 
 @Module({
   imports: [
@@ -17,6 +18,10 @@ import { BookModule } from './book/book.module';
       // this is for schema first approach
       // typePaths: ['./**/*.graphql'], // this will load all .graphql files in the project and merge them into one schema
       playground: true,
+      // this is used to auto generate the typescript types for the schema
+      definitions: {
+        path: 'src/graphql/types.ts',
+      },
     }),
     TypeOrmModule.forRoot({
       type: 'sqlite',
@@ -32,6 +37,7 @@ import { BookModule } from './book/book.module';
       migrations: [],
     }),
     BookModule,
+    UserModule,
   ],
   controllers: [],
   providers: [],
