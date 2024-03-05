@@ -65,11 +65,19 @@ export interface LogoutResponse {
     message: string;
 }
 
+export interface UserResponse {
+    id: number;
+    email: string;
+    name: string;
+    age: number;
+}
+
 export interface IQuery {
     getAllBooks(): Book[] | Promise<Book[]>;
     getBookById(id: number): Book | Promise<Book>;
     getUsers(): User[] | Promise<User[]>;
     getUserById(id: number): Nullable<User> | Promise<Nullable<User>>;
+    profile(): UserResponse | Promise<UserResponse>;
 }
 
 export interface IMutation {

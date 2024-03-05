@@ -3,8 +3,8 @@ import { ExtractJwt, Strategy } from 'passport-jwt';
 import { JWT_AUTH_TOKEN_SECRET } from 'env.constants';
 
 type JwtPayload = {
-  userId: string;
-  username: string;
+  id: string;
+  email: string;
 };
 
 export class JWTAccessTokenStrategy extends PassportStrategy(
@@ -20,7 +20,7 @@ export class JWTAccessTokenStrategy extends PassportStrategy(
   }
 
   async validate(payload: JwtPayload) {
-    console.log(payload, 'from jwt strategy');
+    console.log(payload, 'from jwt strategy 1111');
     return payload;
   }
 }

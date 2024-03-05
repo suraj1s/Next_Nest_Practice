@@ -20,3 +20,18 @@ export class LogoutResponse {
   @Field()
   message: string;
 }
+
+@ObjectType()
+export class UserResponse {
+  @Field()
+  id: number;
+
+  @Field()
+  email: string;
+
+  @Field()
+  name: string;
+
+  @Field()
+  age: number;
+}

@@ -6,7 +6,12 @@ import { JWTRefreshTokenGaurd } from 'src/auth/gaurds/refreshToken.garud';
 import { CurrentUser } from '../utils/getCurrentUser';
 import { SignInUserInput, SignUpUserInput } from '../utils/sign.input';
 import { User } from 'src/user/models/User';
-import { AccessTokenResponse, AuthTokensResponse, LogoutResponse } from './responsetype';
+import {
+  AccessTokenResponse,
+  AuthTokensResponse,
+  LogoutResponse,
+  UserResponse,
+} from './responsetype';
 
 @Resolver((of) => User)
 export class AuthResolver {
@@ -17,7 +22,7 @@ export class AuthResolver {
     console.log(authPayload, 'authPayload from auth signup resolver');
     const createdUser = await this.authService.signUp(authPayload);
     console.log(createdUser, 'createdUser from signup resolver');
-    return createdUser
+    return createdUser;
   }
 
   @Mutation((returns) => AuthTokensResponse)
@@ -25,11 +30,12 @@ export class AuthResolver {
     return this.authService.signIn(data);
   }
 
-  // @Query('profile')
-  // @UseGuards(JWTAccessTokenGaurd)
-  // profile(@CurrentUser() user: any) {
-  //   return user;
-  // }
+  @Query((returns) => UserResponse)
+  @UseGuards(JWTAccessTokenGaurd)
+  profile(@Context('user') user: any) {
+    console.log(user, 'user from profile resolver');
+    return user;
+  }
 
   @Mutation((returns) => AccessTokenResponse)
   @UseGuards(JWTRefreshTokenGaurd)

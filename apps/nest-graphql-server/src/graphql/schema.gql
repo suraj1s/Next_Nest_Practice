@@ -29,11 +29,19 @@ type LogoutResponse {
   message: String!
 }
 
+type UserResponse {
+  id: Float!
+  email: String!
+  name: String!
+  age: Float!
+}
+
 type Query {
   getAllBooks: [Book!]!
   getBookById(id: Float!): Book!
   getUsers: [User!]!
   getUserById(id: Int!): User
+  profile: UserResponse!
 }
 
 type Mutation {

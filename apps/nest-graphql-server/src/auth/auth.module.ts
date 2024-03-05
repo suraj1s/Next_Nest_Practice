@@ -15,7 +15,7 @@ import { AuthResolver } from './resolvers/auth.resolver';
 // auth refrense : https://www.elvisduru.com/blog/nestjs-jwt-authentication-refresh-token
 @Module({
   imports: [
-    PassportModule.register({ defaultStrategy: 'local' }),
+    PassportModule.register({ defaultStrategy: 'jwt-access-token' }),
     UserModule,
     TypeOrmModule.forFeature([User]),
     JwtModule.register({

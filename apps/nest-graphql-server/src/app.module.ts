@@ -20,6 +20,7 @@ import { AuthModule } from './auth/auth.module';
       // this is for schema first approach
       // typePaths: ['./**/*.graphql'], // this will load all .graphql files in the project and merge them into one schema
       playground: true,
+      context: ({ req, res }) => ({ req, res }),
       // this is used to auto generate the typescript types for the schema
       definitions: {
         path: 'src/graphql/types.ts',
