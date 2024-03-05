@@ -6,6 +6,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { User } from './user/models/User';
 import { BookModule } from './book/book.module';
 import { UserModule } from './user/user.module';
+import { Book } from './book/graphql/book.schema';
 
 @Module({
   imports: [
@@ -32,7 +33,7 @@ import { UserModule } from './user/user.module';
       database: 'chat_project.db',
       synchronize: true, // This will create the database if it doesn't exist and detect changes and sync with db
       logging: false,
-      entities: [User],
+      entities: [User, Book],
       subscribers: [],
       migrations: [],
     }),
