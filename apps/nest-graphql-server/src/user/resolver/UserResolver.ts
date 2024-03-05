@@ -1,14 +1,5 @@
-import {
-  Args,
-  Int,
-  Mutation,
-  Parent,
-  Query,
-  ResolveField,
-  Resolver,
-} from '@nestjs/graphql';
+import { Args, Int, Mutation, Query, Resolver } from '@nestjs/graphql';
 import { User } from '../models/User';
-import { UserSetting } from '../models/UserSetting';
 import { CreateUserInput } from '../utils/createUserInput';
 import { UserService } from '../services/user.service';
 
@@ -18,13 +9,13 @@ export class UserResolver {
 
   @Query((returns) => [User])
   getUsers() {
-    return this.userService.findAll();
+    return this.userService.findUsers();
   }
 
   @Query((returns) => User, { nullable: true })
   // argument id of type Int is passed to the getUserById method and refered as id
   getUserById(@Args('id', { type: () => Int }) id: number) {
-    return this.userService.findOne(id);
+    return this.userService.findUserById(id);
   }
 
   // @ResolveField((returns) => UserSetting, { nullable: true, name: 'settings' })
@@ -38,6 +29,6 @@ export class UserResolver {
     // @Args('password') password: string,
     @Args('createUserData') createUserData: CreateUserInput,
   ) {
-    return this.userService.create(createUserData);
+    return this.userService.createUser(createUserData);
   }
 }
