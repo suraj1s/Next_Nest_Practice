@@ -16,11 +16,8 @@ export class AuthResolver {
   async signup(@Args('authPayload') authPayload: SignUpUserInput) {
     console.log(authPayload, 'authPayload from auth signup resolver');
     const createdUser = await this.authService.signUp(authPayload);
-    console.log(createdUser, 'createdUser');
-    return {
-      message: 'User created successfully',
-      user: createdUser,
-    };
+    console.log(createdUser, 'createdUser from signup resolver');
+    return createdUser
   }
 
   @Mutation((returns) => AuthTokensResponse)
