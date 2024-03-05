@@ -1,6 +1,12 @@
 import { Field, Int, ObjectType } from '@nestjs/graphql';
+import {
+  Column,
+  Entity,
+  JoinColumn,
+  OneToOne,
+  PrimaryGeneratedColumn,
+} from 'typeorm';
 import { UserSetting } from './UserSetting';
-import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
 
 @Entity({ name: 'users' })
 @ObjectType()
@@ -25,7 +31,21 @@ export class User {
   @Field({ nullable: true })
   nickName: string;
 
-  // @Column()
+  @Column()
+  @Field({ nullable: true })
+  refreshToken: string;
+
   // @Field({ nullable: true })
-  // settings?: UserSetting;
+  // @OneToOne(() => UserSetting)
+  // @JoinColumn()
+  // setting: UserSetting;
+
+  // in case of many to many relationship reverse mapping is also
+  // @OneToMany(() => Post, (post) => post.user)
+  // @JoinColumn()
+  // post: Post[];
+
+  // @ManyToOne(() => User, (user) => user.post)
+  // @JoinColumn()
+  // user: User;
 }
