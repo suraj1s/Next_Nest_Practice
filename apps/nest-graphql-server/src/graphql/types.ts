@@ -20,9 +20,22 @@ export interface UpdateBookInput {
 }
 
 export interface CreateUserInput {
-    username: string;
+    email: string;
+    name: string;
     password: string;
     age?: Nullable<number>;
+}
+
+export interface SignUpUserInput {
+    email: string;
+    name: string;
+    password: string;
+    age?: Nullable<number>;
+}
+
+export interface SignInUserInput {
+    email: string;
+    password: string;
 }
 
 export interface User {
@@ -30,7 +43,6 @@ export interface User {
     name: string;
     email: string;
     password: string;
-    nickName?: Nullable<string>;
     refreshToken?: Nullable<string>;
 }
 
@@ -38,6 +50,19 @@ export interface Book {
     id: number;
     title: string;
     price: number;
+}
+
+export interface AuthTokensResponse {
+    accessToken: string;
+    refreshToken: string;
+}
+
+export interface AccessTokenResponse {
+    accessToken: string;
+}
+
+export interface LogoutResponse {
+    message: string;
 }
 
 export interface IQuery {
@@ -52,6 +77,11 @@ export interface IMutation {
     updateBook(updateBookData: UpdateBookInput): Book | Promise<Book>;
     deleteBook(id: number): string | Promise<string>;
     createUser(createUserData: CreateUserInput): User | Promise<User>;
+    updateUser(id: number, updateUserData: CreateUserInput): User | Promise<User>;
+    signup(authPayload: SignUpUserInput): AuthTokensResponse | Promise<AuthTokensResponse>;
+    signin(data: SignInUserInput): AuthTokensResponse | Promise<AuthTokensResponse>;
+    refreshTokens(): AccessTokenResponse | Promise<AccessTokenResponse>;
+    logout(): LogoutResponse | Promise<LogoutResponse>;
 }
 
 type Nullable<T> = T | null;

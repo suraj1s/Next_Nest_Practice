@@ -1,17 +1,19 @@
 import { Resolver, Mutation, Args, Query, Context } from '@nestjs/graphql';
-import { AuthPayloadDto } from 'src/auth/authDto/auth.dto';
 import { AuthService } from 'src/auth/services/auth.service';
 import { UseGuards } from '@nestjs/common';
 import { JWTAccessTokenGaurd } from 'src/auth/gaurds/accessToken.gaurd';
 import { JWTRefreshTokenGaurd } from 'src/auth/gaurds/refreshToken.garud';
 import { CurrentUser } from '../utils/getCurrentUser';
+import { SignInUserInput, SignUpUserInput } from '../utils/sign.input';
+import { User } from 'src/user/models/User';
+import { AccessTokenResponse, AuthTokensResponse, LogoutResponse } from './responsetype';
 
-@Resolver('Auth')
+@Resolver((of) => User)
 export class AuthResolver {
   constructor(private readonly authService: AuthService) {}
 
-  @Mutation('signup')
-  async signup(@Args('authPayload') authPayload: AuthPayloadDto) {
+  @Mutation((returns) => AuthTokensResponse)
+  async signup(@Args('authPayload') authPayload: SignUpUserInput) {
     console.log(authPayload, 'authPayload from auth signup resolver');
     const createdUser = await this.authService.signUp(authPayload);
     console.log(createdUser, 'createdUser');
@@ -21,18 +23,18 @@ export class AuthResolver {
     };
   }
 
-  @Mutation('signin')
-  signin(@Args('data') data: any) {
+  @Mutation((returns) => AuthTokensResponse)
+  signin(@Args('data') data: SignInUserInput) {
     return this.authService.signIn(data);
   }
 
-  @Query('profile')
-  @UseGuards(JWTAccessTokenGaurd)
-  profile(@CurrentUser() user: any) {
-    return user;
-  }
+  // @Query('profile')
+  // @UseGuards(JWTAccessTokenGaurd)
+  // profile(@CurrentUser() user: any) {
+  //   return user;
+  // }
 
-  @Query('refreshTokens')
+  @Mutation((returns) => AccessTokenResponse)
   @UseGuards(JWTRefreshTokenGaurd)
   refreshTokens(@CurrentUser() user: any) {
     const userId = user.userId;
@@ -40,7 +42,7 @@ export class AuthResolver {
     return this.authService.refreshTokens(userId, refreshToken);
   }
 
-  @Mutation('logout')
+  @Mutation((returns) => LogoutResponse)
   @UseGuards(JWTAccessTokenGaurd)
   logout(@CurrentUser() user: any) {
     this.authService.logout(user.userId);

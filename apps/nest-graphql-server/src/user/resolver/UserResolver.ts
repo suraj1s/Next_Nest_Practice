@@ -13,7 +13,6 @@ export class UserResolver {
   }
 
   @Query((returns) => User, { nullable: true })
-  // argument id of type Int is passed to the getUserById method and refered as id
   getUserById(@Args('id', { type: () => Int }) id: number) {
     return this.userService.findUserById(id);
   }
@@ -24,11 +23,15 @@ export class UserResolver {
   // }
 
   @Mutation((returns) => User)
-  createUser(
-    // @Args('username') username: string,
-    // @Args('password') password: string,
-    @Args('createUserData') createUserData: CreateUserInput,
-  ) {
+  createUser(@Args('createUserData') createUserData: CreateUserInput) {
     return this.userService.createUser(createUserData);
+  }
+
+  @Mutation((returns) => User)
+  updateUser(
+    @Args('id', { type: () => Int }) id: number,
+    @Args('updateUserData') updateUserData: CreateUserInput,
+  ) {
+    return this.userService.updateUser(id, updateUserData);
   }
 }

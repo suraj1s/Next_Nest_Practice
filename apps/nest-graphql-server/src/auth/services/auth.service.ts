@@ -2,14 +2,12 @@ import {
   BadRequestException,
   ForbiddenException,
   Injectable,
-  UnauthorizedException,
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { JWT_AUTH_TOKEN_SECRET, JWT_REFRESH_TOKEN_SECRET } from 'env.constants';
-import { STATUS_CODES } from 'http';
-import { AuthPayloadDto } from 'src/auth/authDto/auth.dto';
 import * as argon2 from 'argon2';
 import { UserService } from 'src/user/services/user.service';
+import { CreateUserDto, SignInUserDto } from '../utils/users.dto';
 
 @Injectable()
 export class AuthService {
@@ -18,7 +16,7 @@ export class AuthService {
     private readonly jwtService: JwtService,
   ) {}
 
-  async signUp(createUserDto: any): Promise<any> {
+  async signUp(createUserDto: CreateUserDto): Promise<any> {
     // Check if user exists
     const userExists = await this.usersService.findUserByEmail(
       createUserDto.email,
@@ -40,7 +38,7 @@ export class AuthService {
     return tokens;
   }
 
-  async signIn(data: any) {
+  async signIn(data: SignInUserDto) {
     // Check if user exists
     const user = await this.usersService.findUserByEmail(data.email);
     if (!user) throw new BadRequestException('User does not exist');

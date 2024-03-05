@@ -12,7 +12,7 @@ export class UserService {
   ) {}
 
   findUsers() {
-    return this.usersRepository.find({ relations: ['profile', 'post'] });
+    return this.usersRepository.find();
   }
 
   async findUserById(id: number) {

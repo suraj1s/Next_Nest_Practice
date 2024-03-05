@@ -1,18 +1,22 @@
 // // Purpose: final filtered data form request body ready to be saved in the db
 
 export type CreateUserParams = {
-  userName: string;
+  email: string;
+  name: string;
   password: string;
+  age?: number;
 };
 
 export type UpdateUserParams = {
-  userName?: string;
+  email?: string;
+  name?: string;
   password?: string;
+  age?: number;
   refreshToken?: string;
 };
 
 export type UserValidation = {
-  userName: string;
+  email: string;
   password: string;
   id: number;
 };

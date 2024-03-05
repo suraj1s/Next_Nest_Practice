@@ -27,11 +27,7 @@ export class User {
   @Field()
   password: string;
 
-  @Column()
-  @Field({ nullable: true })
-  nickName: string;
-
-  @Column()
+  @Column({ nullable: true })
   @Field({ nullable: true })
   refreshToken: string;
 

@@ -7,6 +7,7 @@ import { User } from './user/models/User';
 import { BookModule } from './book/book.module';
 import { UserModule } from './user/user.module';
 import { Book } from './book/graphql/book.schema';
+import { AuthModule } from './auth/auth.module';
 
 @Module({
   imports: [
@@ -39,6 +40,7 @@ import { Book } from './book/graphql/book.schema';
     }),
     BookModule,
     UserModule,
+    AuthModule,
   ],
   controllers: [],
   providers: [],
