@@ -5,7 +5,7 @@ import { Observable } from 'rxjs';
 
 @Injectable()
 export class JWTRefreshTokenGaurd extends AuthGuard('jwt-refresh-token') {
-  canActivate(
+  getRequest(
     context: ExecutionContext,
   ): boolean | Promise<boolean> | Observable<boolean> {
     const ctx = GqlExecutionContext.create(context);
