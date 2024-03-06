@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Book } from '../graphql/book.schema';
 import { Repository } from 'typeorm';
-import { CreateBookInput } from '../utils/type';
+import { CreateBookInput } from 'src/utils/types/book/book.input';
 
 @Injectable()
 export class BookService {

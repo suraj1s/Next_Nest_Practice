@@ -7,7 +7,7 @@ import { JwtService } from '@nestjs/jwt';
 import { JWT_AUTH_TOKEN_SECRET, JWT_REFRESH_TOKEN_SECRET } from 'env.constants';
 import * as argon2 from 'argon2';
 import { UserService } from 'src/user/services/user.service';
-import { CreateUserDto, SignInUserDto } from '../utils/users.dto';
+import { SignInUserDto, SignupUserDto } from 'src/utils/types/auth/auth.dto';
 
 @Injectable()
 export class AuthService {
@@ -16,7 +16,7 @@ export class AuthService {
     private readonly jwtService: JwtService,
   ) {}
 
-  async signUp(createUserDto: CreateUserDto): Promise<any> {
+  async signUp(createUserDto: SignupUserDto): Promise<any> {
     // Check if user exists
     const userExists = await this.usersService.findUserByEmail(
       createUserDto.email,

@@ -1,8 +1,10 @@
 import { Args, Mutation, Query, Resolver } from '@nestjs/graphql';
 import { Book } from '../graphql/book.schema';
-import { CreateBookInput, UpdateBookInput } from '../utils/type';
-import { create } from 'domain';
 import { BookService } from '../services/book.service';
+import {
+  CreateBookInput,
+  UpdateBookInput,
+} from 'src/utils/types/book/book.input';
 // this is resolver used to resolve the query i.e the main logic that will be executed when the query is called to fetch the data form the database
 
 // code first approach

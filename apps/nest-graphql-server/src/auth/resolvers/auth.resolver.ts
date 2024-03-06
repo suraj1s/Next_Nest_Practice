@@ -4,14 +4,18 @@ import { UseGuards } from '@nestjs/common';
 import { JWTAccessTokenGaurd } from 'src/auth/gaurds/accessToken.gaurd';
 import { JWTRefreshTokenGaurd } from 'src/auth/gaurds/refreshToken.garud';
 import { CurrentUser } from '../utils/getCurrentUser';
-import { SignInUserInput, SignUpUserInput } from '../utils/sign.input';
 import { User } from 'src/user/models/User';
+
 import {
+  UserResponse,
   AccessTokenResponse,
   AuthTokensResponse,
   LogoutResponse,
-  UserResponse,
-} from './responsetype';
+} from 'src/utils/types/auth/auth.response';
+import {
+  SignInUserInput,
+  SignUpUserInput,
+} from 'src/utils/types/auth/auth.input';
 
 @Resolver((of) => User)
 export class AuthResolver {
