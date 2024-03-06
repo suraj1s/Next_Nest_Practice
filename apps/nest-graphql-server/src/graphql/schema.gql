@@ -2,30 +2,94 @@
 # THIS FILE WAS AUTOMATICALLY GENERATED (DO NOT MODIFY)
 # ------------------------------------------------------
 
+type UserSetting {
+  userId: Int!
+  recievedNotification: Boolean!
+}
+
 type Book {
   id: Int!
   title: String!
   price: Int!
+  status: String
+}
+
+type User {
+  id: Int!
+  name: String!
+  email: String!
+  password: String!
+  refreshToken: String
+  userSetting: UserSetting
+}
+
+type AuthTokensResponse {
+  accessToken: String!
+  refreshToken: String!
+}
+
+type AccessTokenResponse {
+  accessToken: String!
+}
+
+type LogoutResponse {
+  message: String!
+}
+
+type UserResponse {
+  id: Float!
+  email: String!
+  name: String!
+  refreshToken: String!
 }
 
 type Query {
   getAllBooks: [Book!]!
   getBookById(id: Float!): Book!
+  getUsers: [User!]!
+  getUserById(id: Int!): User
+  profile: UserResponse!
 }
 
 type Mutation {
   addBook(createBookData: CreateBookInput!): Book!
   updateBook(updateBookData: UpdateBookInput!): Book!
-  deleteBook(id: Float!): [Book!]!
+  deleteBook(id: Float!): String!
+  createUser(createUserData: CreateUserInput!): User!
+  updateUser(id: Int!, updateUserData: CreateUserInput!): User!
+  signup(authPayload: SignUpUserInput!): AuthTokensResponse!
+  signin(data: SignInUserInput!): AuthTokensResponse!
+  refreshTokens: AccessTokenResponse!
+  logout: LogoutResponse!
 }
 
 input CreateBookInput {
   title: String!
   price: Int!
+  status: String
 }
 
 input UpdateBookInput {
   id: Int!
   title: String
   price: Float
+}
+
+input CreateUserInput {
+  email: String!
+  name: String!
+  password: String!
+  age: Float
+}
+
+input SignUpUserInput {
+  email: String!
+  name: String!
+  password: String!
+  age: Float
+}
+
+input SignInUserInput {
+  email: String!
+  password: String!
 }

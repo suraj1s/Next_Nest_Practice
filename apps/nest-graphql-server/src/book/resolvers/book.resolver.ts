@@ -1,68 +1,51 @@
 import { Args, Mutation, Query, Resolver } from '@nestjs/graphql';
 import { Book } from '../graphql/book.schema';
-import { CreateBookInput, UpdateBookInput } from '../utils/type';
-import { create } from 'domain';
+import { BookService } from '../services/book.service';
+import {
+  CreateBookInput,
+  UpdateBookInput,
+} from 'src/utils/types/book/book.input';
+import { JWTAccessTokenGaurd } from 'src/auth/gaurds/accessToken.gaurd';
+import { UseGuards } from '@nestjs/common';
+import { CurrentUser } from 'src/auth/utils/getCurrentUser';
 // this is resolver used to resolve the query i.e the main logic that will be executed when the query is called to fetch the data form the database
 
 // code first approach
-const bookData = [
-  {
-    id: 1,
-    title: 'The Hobbit',
-    price: 9,
-  },
-  {
-    id: 2,
-    title: 'The Lord of the Rings',
-    price: 19,
-  },
-];
 
 @Resolver((of) => Book)
 export class BookResolver {
-  constructor() {}
+  constructor(private readonly bookService: BookService) {}
 
-  @Query((returns) => [Book])
-  getAllBooks() {
-    return bookData;
+  @Query((returns) => [Book], { name: 'getAllBooks' })
+  @UseGuards(JWTAccessTokenGaurd)
+  async getAllBooks(@CurrentUser() user: any) {
+    const books = await this.bookService.findAll(user);
+    return books;
   }
 
-  @Query((returns) => Book)
+  @Query((returns) => Book, { name: 'getBookById' })
   getBookById(@Args('id') id: number) {
-    return bookData.find((book) => book.id === id);
+    return this.bookService.findOne(id);
   }
-  @Mutation((returns) => Book)
-  addBook(@Args('createBookData') createBookData: CreateBookInput) {
-    const { title, price } = createBookData;
-    const newBook = {
-      id: bookData.length + 1,
-      title,
-      price,
-    };
-    bookData.push(newBook);
-    return newBook;
+  @Mutation((returns) => Book, { name: 'addBook' })
+  async addBook(@Args('createBookData') createBookData: CreateBookInput) {
+    const createdBook = await this.bookService.create(createBookData);
+    return createdBook;
   }
 
-  @Mutation((returns) => Book)
+  @Mutation((returns) => Book, { name: 'updateBook' })
   updateBook(
     // @Args('id') id: number,
     // @Args('title') title: string,
     // @Args('price') price: number,
     @Args('updateBookData') updateBookData: UpdateBookInput,
   ) {
-    const { id, title, price } = updateBookData;
-    const book = bookData.find((book) => book.id === id);
-    if (book) {
-      book.title = title;
-      book.price = price;
-    }
-    return book;
+    return this.bookService.update(updateBookData.id, updateBookData);
   }
 
-  @Mutation((returns) => [Book])
+  @Mutation((returns) => String, { name: 'deleteBook' })
   deleteBook(@Args('id') id: number) {
-    const newBook = bookData.filter((book) => book.id !== id);
-    return newBook;
+    return this.bookService.remove(id);
   }
 }
 

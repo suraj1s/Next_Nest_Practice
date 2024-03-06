@@ -46,3 +46,5 @@ mutation {
   }
 }
 ```
+
+for atuheticate and authorization use graphql context in gaurd and

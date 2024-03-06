@@ -7,6 +7,9 @@ export class CreateBookInput {
 
   @Field(() => Int)
   price: number;
+
+  @Field({ nullable: true })
+  status: string;
 }
 
 @InputType()
