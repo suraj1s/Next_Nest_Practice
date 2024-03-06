@@ -33,7 +33,7 @@ type UserResponse {
   id: Float!
   email: String!
   name: String!
-  age: Float!
+  refreshToken: String!
 }
 
 type Query {

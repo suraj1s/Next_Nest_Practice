@@ -21,6 +21,7 @@ export class JWTAccessTokenStrategy extends PassportStrategy(
 
   async validate(payload: JwtPayload) {
     console.log(payload, 'from jwt strategy 1111');
+    if (!payload) throw new Error('Invalid token');
     return payload;
   }
 }

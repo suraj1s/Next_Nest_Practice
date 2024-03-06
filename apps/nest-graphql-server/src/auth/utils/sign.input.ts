@@ -7,7 +7,6 @@ export class SignInUserInput {
 
   @Field()
   password: string;
-
 }
 
 @InputType()
@@ -24,4 +23,3 @@ export class SignUpUserInput {
   @Field({ nullable: true })
   age: number;
 }
-

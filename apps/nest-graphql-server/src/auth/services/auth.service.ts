@@ -83,6 +83,7 @@ export class AuthService {
       refreshToken: hashedRefreshToken,
     });
   }
+
   async getTokens(userId: number, email: string) {
     const [accessToken, refreshToken] = await Promise.all([
       this.jwtService.signAsync(
@@ -92,7 +93,7 @@ export class AuthService {
         },
         {
           secret: JWT_AUTH_TOKEN_SECRET,
-          expiresIn: '30s',
+          expiresIn: '1m',
         },
       ),
       this.jwtService.signAsync(
@@ -111,5 +112,9 @@ export class AuthService {
       accessToken,
       refreshToken,
     };
+  }
+
+  async getUserByEmail(email: string) {
+    return this.usersService.findUserByEmail(email);
   }
 }

@@ -33,5 +33,5 @@ export class UserResponse {
   name: string;
 
   @Field()
-  age: number;
+  refreshToken: string;
 }

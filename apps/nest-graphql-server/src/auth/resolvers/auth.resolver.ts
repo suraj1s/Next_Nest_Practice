@@ -32,9 +32,10 @@ export class AuthResolver {
 
   @Query((returns) => UserResponse)
   @UseGuards(JWTAccessTokenGaurd)
-  profile(@Context('user') user: any) {
-    console.log(user, 'user from profile resolver');
-    return user;
+  profile(@CurrentUser() user: any) {
+    const currentUser = this.authService.getUserByEmail(user.email);
+    console.log(currentUser, 'currentUser from profile resolver');
+    return currentUser;
   }
 
   @Mutation((returns) => AccessTokenResponse)
