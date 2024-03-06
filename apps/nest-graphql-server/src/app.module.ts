@@ -8,6 +8,7 @@ import { BookModule } from './book/book.module';
 import { UserModule } from './user/user.module';
 import { Book } from './book/graphql/book.schema';
 import { AuthModule } from './auth/auth.module';
+import { UserSetting } from './user/models/UserSetting';
 
 @Module({
   imports: [
@@ -35,7 +36,7 @@ import { AuthModule } from './auth/auth.module';
       database: 'chat_project.db',
       synchronize: true, // This will create the database if it doesn't exist and detect changes and sync with db
       logging: false,
-      entities: [User, Book],
+      entities: [User, Book, UserSetting],
       subscribers: [],
       migrations: [],
     }),

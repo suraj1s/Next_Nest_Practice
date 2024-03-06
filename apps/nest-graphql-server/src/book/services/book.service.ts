@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Book } from '../graphql/book.schema';
 import { Repository } from 'typeorm';
-import { CreateBookInput } from 'src/utils/types/book/book.input';
+import { CreateBookInput } from 'src/graphql/types';
 
 @Injectable()
 export class BookService {
@@ -11,8 +11,8 @@ export class BookService {
     @InjectRepository(Book) public readonly bookModle: Repository<Book>,
   ) {}
 
-  async findAll(): Promise<Book[]> {
-    return this.bookModle.find();
+  async findAll(user: any): Promise<Book[]> {
+    return this.bookModle.find({ where: { user: user.id } });
   }
 
   async findOne(id: number): Promise<Book> {
@@ -29,7 +29,7 @@ export class BookService {
     // return this.bookModle.save(newBook);
   }
 
-  async update(id: number, book: Book): Promise<Book> {
+  async update(id: number, book: CreateBookInput): Promise<Book> {
     await this.bookModle.update(id, book);
     return this.bookModle.findOne({ where: { id } });
   }

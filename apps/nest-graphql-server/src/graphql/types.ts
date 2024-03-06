@@ -11,6 +11,7 @@
 export interface CreateBookInput {
     title: string;
     price: number;
+    status?: Nullable<string>;
 }
 
 export interface UpdateBookInput {
@@ -38,18 +39,25 @@ export interface SignInUserInput {
     password: string;
 }
 
-export interface User {
-    id: number;
-    name: string;
-    email: string;
-    password: string;
-    refreshToken?: Nullable<string>;
+export interface UserSetting {
+    userId: number;
+    recievedNotification: boolean;
 }
 
 export interface Book {
     id: number;
     title: string;
     price: number;
+    status?: Nullable<string>;
+}
+
+export interface User {
+    id: number;
+    name: string;
+    email: string;
+    password: string;
+    refreshToken?: Nullable<string>;
+    userSetting?: Nullable<UserSetting>;
 }
 
 export interface AuthTokensResponse {

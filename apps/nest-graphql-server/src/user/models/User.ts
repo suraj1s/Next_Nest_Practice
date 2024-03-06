@@ -3,10 +3,12 @@ import {
   Column,
   Entity,
   JoinColumn,
+  OneToMany,
   OneToOne,
   PrimaryGeneratedColumn,
 } from 'typeorm';
 import { UserSetting } from './UserSetting';
+import { Book } from 'src/book/graphql/book.schema';
 
 @Entity({ name: 'users' })
 @ObjectType()
@@ -31,17 +33,13 @@ export class User {
   @Field({ nullable: true })
   refreshToken: string;
 
-  // @Field({ nullable: true })
-  // @OneToOne(() => UserSetting)
-  // @JoinColumn()
-  // setting: UserSetting;
+  @Field({ nullable: true })
+  @OneToOne(() => UserSetting)
+  @JoinColumn()
+  userSetting: UserSetting;
 
   // in case of many to many relationship reverse mapping is also
-  // @OneToMany(() => Post, (post) => post.user)
-  // @JoinColumn()
-  // post: Post[];
-
-  // @ManyToOne(() => User, (user) => user.post)
-  // @JoinColumn()
-  // user: User;
+  @OneToMany(() => Book, (book) => book.user)
+  @JoinColumn()
+  book: Book[];
 }

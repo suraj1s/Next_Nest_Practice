@@ -93,7 +93,7 @@ export class AuthService {
         },
         {
           secret: JWT_AUTH_TOKEN_SECRET,
-          expiresIn: '1m',
+          expiresIn: '5d',
         },
       ),
       this.jwtService.signAsync(
@@ -103,7 +103,7 @@ export class AuthService {
         },
         {
           secret: JWT_REFRESH_TOKEN_SECRET,
-          expiresIn: '3m',
+          expiresIn: '10d',
         },
       ),
     ]);

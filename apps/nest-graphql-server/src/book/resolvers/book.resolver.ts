@@ -5,6 +5,9 @@ import {
   CreateBookInput,
   UpdateBookInput,
 } from 'src/utils/types/book/book.input';
+import { JWTAccessTokenGaurd } from 'src/auth/gaurds/accessToken.gaurd';
+import { UseGuards } from '@nestjs/common';
+import { CurrentUser } from 'src/auth/utils/getCurrentUser';
 // this is resolver used to resolve the query i.e the main logic that will be executed when the query is called to fetch the data form the database
 
 // code first approach
@@ -14,8 +17,9 @@ export class BookResolver {
   constructor(private readonly bookService: BookService) {}
 
   @Query((returns) => [Book], { name: 'getAllBooks' })
-  async getAllBooks() {
-    const books = await this.bookService.findAll();
+  @UseGuards(JWTAccessTokenGaurd)
+  async getAllBooks(@CurrentUser() user: any) {
+    const books = await this.bookService.findAll(user);
     return books;
   }
 
