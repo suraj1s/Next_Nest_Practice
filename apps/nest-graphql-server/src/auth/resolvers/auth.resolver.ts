@@ -13,6 +13,7 @@ import {
   LogoutResponse,
 } from 'src/utils/types/auth/auth.response';
 import {
+  RefreshTokenInput,
   SignInUserInput,
   SignUpUserInput,
 } from 'src/utils/types/auth/auth.input';
@@ -43,11 +44,13 @@ export class AuthResolver {
   }
 
   @Mutation((returns) => AccessTokenResponse)
-  @UseGuards(JWTRefreshTokenGaurd)
-  refreshTokens(@CurrentUser() user: any) {
-    const userId = user.userId;
-    const refreshToken = user.refreshToken;
-    return this.authService.refreshTokens(userId, refreshToken);
+  // @UseGuards(JWTRefreshTokenGaurd)
+  refreshTokens(
+    @CurrentUser() user: any,
+    @Args('refresh_token') refresh_token: string,
+    @Args('userId') userId: number,
+  ) {
+    return this.authService.refreshTokens(userId, refresh_token);
   }
 
   @Mutation((returns) => LogoutResponse)

@@ -59,7 +59,7 @@ type Mutation {
   updateUser(id: Int!, updateUserData: CreateUserInput!): User!
   signup(authPayload: SignUpUserInput!): AuthTokensResponse!
   signin(data: SignInUserInput!): AuthTokensResponse!
-  refreshTokens: AccessTokenResponse!
+  refreshTokens(refresh_token: String!, userId: Float!): AccessTokenResponse!
   logout: LogoutResponse!
 }
 
