@@ -9,6 +9,7 @@ import BookCard, { IBookType } from "./BookCard";
 const AllTodo = () => {
   const { data: graphqlData } = useGetBookDataQuery({});
   const bookData: IBookType[] = graphqlData?.data?.getAllBooks;
+  console.log(bookData, "form rtk")
   const [createBook] = useCreateBookMutation();
   const handelAddBook = ()=> {
     const bookData = {
