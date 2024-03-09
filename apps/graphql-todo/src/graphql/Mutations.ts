@@ -10,6 +10,18 @@ export const addBookMutaion = gql`
   }
 `;
 
+export const signInUser = gql`
+mutation {
+  signin(data: {
+    email: "ram@gmail.com"
+    password: "ram",
+  }){
+    accessToken,
+    refreshToken
+  }
+}
+`;
+
 export interface CreateBookInput {
   title: string;
   price: number;

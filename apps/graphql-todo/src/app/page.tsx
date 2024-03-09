@@ -1,5 +1,4 @@
 "use client";
-
 import {
   ApolloClient,
   InMemoryCache,
@@ -12,18 +11,18 @@ import { setContext } from "@apollo/client/link/context";
 import { Observable, from } from "apollo-link"; // Import for chaining links
 import AllTodoApollo from "@/component/AllTodoApollo";
 
+
+const refreshToken = localStorage.getItem("refreshToken");
 const REFRESH_TOKEN_MUTATION = gql`
   mutation {
     refreshTokens(
       userId: 1
-      refresh_token: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjEsImVtYWlsIjoicmFtQGdtYWlsLmNvbSIsImlhdCI6MTcwOTgwOTM4MCwiZXhwIjoxNzA5ODA5NTAwfQ.4NRptmQyAtRPtgmgQe0hS3hM2AYj_nKssrhuQMxM7I8"
+      refresh_token:${refreshToken}
     ) {
       accessToken
     }
   }
 `;
-const accessToken =
-  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjEsImVtYWlsIjoicmFtQGdtYWlsLmNvbSIsImlhdCI6MTcwOTgwOTUwOCwiZXhwIjoxNzA5ODA5NTM4fQ.Jyqy6VC1fyIkJAlN2u4vKch1yC_bwP7VRgOXuKp-pq8";
 
 const getNewAuthUsingRefreshMutation = async (client: ApolloClient<any>) => {
   try {
@@ -36,78 +35,56 @@ const getNewAuthUsingRefreshMutation = async (client: ApolloClient<any>) => {
     // Handle the error appropriately, e.g., redirect to login page
   }
 };
-const errorLink = onError(({ graphQLErrors, networkError, operation , forward }) => {
-  if (graphQLErrors) {
-    graphQLErrors.forEach(({ message, locations, path }) =>
-      console.error(
-        `[GraphQL error]: Message: ${message}, Location: ${locations}, Path: ${path}`
-      )
-    );
+const errorLink = onError(
+  //@ts-ignore
+  ({ graphQLErrors, networkError, operation, forward }) => {
+    if (graphQLErrors) {
+      graphQLErrors.forEach(({ message, locations, path }) =>
+        console.error(
+          `[GraphQL error]: Message: ${message}, Location: ${locations}, Path: ${path}`
+        )
+      );
+    }
+    if (networkError) console.error(`[Network error]: ${networkError}`);
+    // Check for specific GraphQL errors indicating expired token:
+    if (
+      graphQLErrors &&
+      graphQLErrors.some((error) => error.extensions.code === "UNAUTHENTICATED")
+    ) {
+      return new Observable((observer) => {
+        (async () => {
+          getNewAuthUsingRefreshMutation(client)
+            .then((refreshResponse) => {
+              console.log("new token ", refreshResponse);
+              operation.setContext(({ headers = {} }) => ({
+                headers: {
+                  ...headers,
+                  token: refreshResponse?.token ?? null,
+                },
+              }));
+            })
+            .then(() => {
+              const subscriber = {
+                next: observer.next.bind(observer),
+                error: observer.error.bind(observer),
+                complete: observer.complete.bind(observer),
+              };
+              forward(operation).subscribe(subscriber);
+            })
+            .catch((error) => {
+              console.error("Error during token refresh and retry:", error);
+              observer.error(error);
+            });
+        })();
+      });
+    }
   }
-  if (networkError) console.error(`[Network error]: ${networkError}`);
-
-  // Check for specific GraphQL errors indicating expired token:
-  if (
-    graphQLErrors &&
-    graphQLErrors.some((error) => error.extensions.code === "UNAUTHENTICATED")
-  ) {
-    // const newAccessToken = getNewAuthUsingRefreshMutation(client)
-    //   .then((newAccessToken) => {
-    //     console.log(newAccessToken, "newAccessToken");
-    //     // Update the authorization header with the new token
-    //     authLink.setContext((existingHeaders) => ({
-    //       ...existingHeaders,
-    //       authorization: newAccessToken ? `Bearer ${newAccessToken}` : "",
-    //     }));
-    //     // Retry the operation 
-    //     const subscriber = {
-    //       next: observer.next.bind(observer),
-    //       error: observer.error.bind(observer),
-    //       complete: observer.complete.bind(observer)
-    //     };
-
-    //     // Retry last failed request
-    //     forward(operation).subscribe(subscriber);
-         
-    //   })
-    //   .catch(
-    //     (error) =>
-    //       console.error("Failed to refresh token and retry request:", error)
-    //     // Handle the error appropriately, e.g., redirect to login page
-    //   );
-    return new Observable( observer => {
-      getNewAuthUsingRefreshMutation(client)
-        .then(refreshResponse => {
-          operation.setContext(({ headers = {} }) => ({
-            headers: {
-              // Re-add old headers
-              ...headers,
-              // Switch out old access token for new one
-              token: refreshResponse?.token ?? null,
-            }
-          }));
-        })
-        .then(() => {
-          const subscriber = {
-            next: observer.next.bind(observer),
-            error: observer.error.bind(observer),
-            complete: observer.complete.bind(observer)
-          }
-
-          // Retry last failed request
-          forward(operation).subscribe(subscriber);
-        })
-        .catch(error => {
-          // No refresh or client token available, we force user to login
-          console.error("Error during token refresh and retry:", error);
-          observer.error(error);
-        });
-    });
-  }
-});
+);
 
 const authLink = setContext((request, { headers }) => {
   // Include the initial authorization header with the refresh token
+  const accessToken = localStorage.getItem("accessToken");
+  console.log(accessToken, "access token called from set context");
   return {
     headers: {
       ...headers,
@@ -193,3 +170,96 @@ export default function Home() {
 //         </main>
 //     );
 //   }
+
+// function isRefreshRequest(operation: GraphQLRequest) {
+//   return operation.operationName === 'refreshToken';
+// }
+
+// // Returns accesstoken if opoeration is not a refresh token request
+// function returnTokenDependingOnOperation(operation: GraphQLRequest) {
+//   if (isRefreshRequest(operation))
+//     return localStorage.getItem('refreshToken') || '';
+//   else return localStorage.getItem('accessToken') || '';
+// }
+
+// const httpLink = createHttpLink({
+//   uri: 'http://localhost:3000/graphql',
+// });
+
+// const authLink = setContext((operation, { headers }) => {
+//   let token = returnTokenDependingOnOperation(operation);
+
+//   return {
+//     headers: {
+//       ...headers,
+//       authorization: token ? `Bearer ${token}` : '',
+//     },
+//   };
+// });
+
+// const errorLink = onError(
+//   ({ graphQLErrors, networkError, operation, forward }) => {
+//     if (graphQLErrors) {
+//       for (let err of graphQLErrors) {
+//         switch (err.extensions.code) {
+//           case 'UNAUTHENTICATED':
+//             // ignore 401 error for a refresh request
+//             if (operation.operationName === 'refreshToken') return;
+
+//             const observable = new Observable<FetchResult<Record<string, any>>>(
+//               (observer) => {
+//                 // used an annonymous function for using an async function
+//                 (async () => {
+//                   try {
+//                     const accessToken = await refreshToken();
+
+//                     if (!accessToken) {
+//                       throw new GraphQLError('Empty AccessToken');
+//                     }
+
+//                     // Retry the failed request
+//                     const subscriber = {
+//                       next: observer.next.bind(observer),
+//                       error: observer.error.bind(observer),
+//                       complete: observer.complete.bind(observer),
+//                     };
+
+//                     forward(operation).subscribe(subscriber);
+//                   } catch (err) {
+//                     observer.error(err);
+//                   }
+//                 })();
+//               }
+//             );
+
+//             return observable;
+//         }
+//       }
+//     }
+
+//     if (networkError) console.log(`[Network error]: ${networkError}`);
+//   }
+// );
+
+// const client = new ApolloClient({
+//   link: ApolloLink.from([errorLink, authLink, httpLink]),
+//   cache: new InMemoryCache(),
+// });
+
+// // Request a refresh token to then stores and returns the accessToken.
+// const refreshToken = async () => {
+//   try {
+//     const refreshResolverResponse = await client.mutate<{
+//       refreshToken: AccessToken;
+//     }>({
+//       mutation: REFRESH_TOKEN,
+//     });
+
+//     const accessToken = refreshResolverResponse.data?.refreshToken.accessToken;
+//     localStorage.setItem('accessToken', accessToken || '');
+//     return accessToken;
+//   } catch (err) {
+//     localStorage.clear();
+//     throw err;
+//   }
+// };
