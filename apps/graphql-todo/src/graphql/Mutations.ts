@@ -22,6 +22,16 @@ mutation {
 }
 `;
 
+export const REFRESH_TOKEN_MUTATION = gql`
+  mutation RefreshTokens($userId: Float!, $refreshToken: String!) {
+    refreshTokens(userId: $userId, refresh_token: $refreshToken) {
+      accessToken
+    }
+  }
+`;
+
+
+
 export interface CreateBookInput {
   title: string;
   price: number;

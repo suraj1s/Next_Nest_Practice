@@ -19,6 +19,7 @@ const AllTodoApollo = () => {
   console.log(bookData, "form apollo");
 
   useEffect(() => {
+    if (!loginData) return;
     const accessToken = loginData?.signin?.accessToken;
     const refreshToken = loginData?.signin?.refreshToken;
     if (accessToken && refreshToken) {
