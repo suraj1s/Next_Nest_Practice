@@ -7,6 +7,7 @@ import {
   ApolloProvider,
   FetchResult,
   ApolloLink,
+  GraphQLRequest,
 } from "@apollo/client";
 import { onError } from "@apollo/client/link/error";
 import { setContext } from "@apollo/client/link/context";
@@ -17,13 +18,12 @@ import { GraphQLError } from "graphql";
 
 const getNewAuthUsingRefreshMutation = async (
   client: ApolloClient<any>,
-  userId: number,
-  refreshToken: string
+  userId: number
 ) => {
   try {
     const { data } = await client.mutate({
       mutation: REFRESH_TOKEN_MUTATION,
-      variables: { userId, refreshToken },
+      variables: { userId },
     });
     localStorage.setItem("accessToken", data.refreshTokens.accessToken);
     return data.refreshTokens.accessToken;
@@ -46,22 +46,19 @@ const errorLink = onError(
       graphQLErrors &&
       graphQLErrors.some((error) => error.extensions.code === "UNAUTHENTICATED")
     ) {
+      console.log(operation.operationName, "operation.operationName");
+      if (operation.operationName === "RefreshTokens") return;
       return new Observable<FetchResult<Record<string, any>>>((observer) => {
         // used an annonymous function for using an async function
-        // (async () => {
-        //   try {
-        const userId = 1;
-        const refreshToken = localStorage.getItem("refreshToken");
-        if (!refreshToken) {
-          throw new GraphQLError("No Refresh Token");
-        }
-        // const accessToken = 
-        getNewAuthUsingRefreshMutation(
-          client,
-          userId,
-          refreshToken
-        )
-          .then((accessToken) => {
+        (async () => {
+          try {
+            const userId = 1;
+            // const refreshToken = localStorage.getItem("refreshToken");
+            const accessToken = await getNewAuthUsingRefreshMutation(
+              client,
+              userId
+            );
+            // .then((accessToken) => {
             if (!accessToken) {
               throw new GraphQLError("Empty AccessToken");
             }
@@ -72,27 +69,41 @@ const errorLink = onError(
               complete: observer.complete.bind(observer),
             };
             forward(operation).subscribe(subscriber);
-          })
-          .catch((error) => {
-            observer.error(error);
-          });
-
-        //   } catch (err) {
-        //     observer.error(err);
-        //   }
-        // })();
+            // })
+            // .catch((error) => {
+            //   observer.error(error);
+            // });
+          } catch (err) {
+            observer.error(err);
+          }
+        })();
       });
     }
   }
 );
+function isRefreshRequest(operation: GraphQLRequest) {
+  return operation.operationName === "RefreshTokens";
+}
 
-const authLink = setContext((request, { headers }) => {
+// Returns accesstoken if opoeration is not a refresh token request
+function returnTokenDependingOnOperation(operation: GraphQLRequest) {
+  if (isRefreshRequest(operation)) {
+    console.log("refresh token", localStorage.getItem("refreshToken"));
+    return localStorage.getItem("refreshToken") || "";
+  } else {
+    console.log("access token", localStorage.getItem("accessToken") || "");
+    return localStorage.getItem("accessToken") || "";
+  }
+}
+const authLink = setContext((operation, { headers }) => {
   // Include the initial authorization header with the refresh token
-  const accessToken = localStorage.getItem("accessToken");
+  // const accessToken = localStorage.getItem("accessToken");
+  let token = returnTokenDependingOnOperation(operation);
+
   return {
     headers: {
       ...headers,
-      authorization: accessToken ? `Bearer ${accessToken}` : "",
+      authorization: token ? `Bearer ${token}` : "",
     },
   };
 });

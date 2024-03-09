@@ -1,6 +1,6 @@
 "use client";
 import { getAllBooks } from "@/graphql/Queries";
-import { useMutation, useQuery } from "@apollo/client";
+import { useLazyQuery, useMutation, useQuery } from "@apollo/client";
 import BookCard, { IBookType } from "./BookCard";
 import {
   CreateBookInput,
@@ -10,14 +10,13 @@ import {
 import { useEffect } from "react";
 
 const AllTodoApollo = () => {
-  const { data } = useQuery(getAllBooks);
+  const[ getAllBooksData, { data }] = useLazyQuery(getAllBooks);
+  
   const [addBook] = useMutation<any, any>(addBookMutaion, {
     refetchQueries: [{ query: getAllBooks }],
   });
   const [loginUser, { data: loginData }] = useMutation<any, any>(signInUser);
   const bookData: IBookType[] = data?.getAllBooks;
-  console.log(bookData, "form apollo");
-
   useEffect(() => {
     if (!loginData) return;
     const accessToken = loginData?.signin?.accessToken;
@@ -26,7 +25,11 @@ const AllTodoApollo = () => {
       localStorage.setItem("accessToken", accessToken);
       localStorage.setItem("refreshToken", refreshToken);
     }
+    getAllBooksData()
   }, [loginData]);
+useEffect(() => {
+  getAllBooksData()
+}, [])
 
   const handleAddBook = () => {
     const title = " book title 1";

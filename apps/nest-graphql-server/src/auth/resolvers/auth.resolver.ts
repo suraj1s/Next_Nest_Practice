@@ -44,13 +44,15 @@ export class AuthResolver {
   }
 
   @Mutation((returns) => AccessTokenResponse)
-  // @UseGuards(JWTRefreshTokenGaurd)
+  @UseGuards(JWTRefreshTokenGaurd)
   refreshTokens(
     @CurrentUser() user: any,
-    @Args('refresh_token') refresh_token: string,
+    // @Args('refresh_token') refresh_token: string,
     @Args('userId') userId: number,
   ) {
-    return this.authService.refreshTokens(userId, refresh_token);
+    console.log(user, 'user from refreshTokens resolver');
+    const refreshToken = user.refreshToken;
+    return this.authService.refreshTokens(userId, refreshToken);
   }
 
   @Mutation((returns) => LogoutResponse)

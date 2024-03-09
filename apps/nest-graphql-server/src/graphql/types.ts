@@ -96,7 +96,7 @@ export interface IMutation {
     updateUser(id: number, updateUserData: CreateUserInput): User | Promise<User>;
     signup(authPayload: SignUpUserInput): AuthTokensResponse | Promise<AuthTokensResponse>;
     signin(data: SignInUserInput): AuthTokensResponse | Promise<AuthTokensResponse>;
-    refreshTokens(refresh_token: string, userId: number): AccessTokenResponse | Promise<AccessTokenResponse>;
+    refreshTokens(userId: number): AccessTokenResponse | Promise<AccessTokenResponse>;
     logout(): LogoutResponse | Promise<LogoutResponse>;
 }
 
