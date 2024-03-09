@@ -23,3 +23,9 @@ export class SignUpUserInput {
   @Field({ nullable: true })
   age: number;
 }
+
+@InputType()
+export class RefreshTokenInput {
+  @Field()
+  refresh_token: string;
+}
