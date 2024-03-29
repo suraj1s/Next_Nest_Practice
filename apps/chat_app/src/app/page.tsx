@@ -17,7 +17,7 @@ export default function Home() {
     router.push("/chat");
   }
   return (
-    <div className=" text-gray-200 font-semibold p-40 ">
+    <div className=" font-semibold p-40 ">
       {/* <h1>Chat App</h1>
       <p>Chat with your friends</p> */}
       <form onSubmit={handelsubmit} className="flex flex-col gap-y-4 text-lg ">
