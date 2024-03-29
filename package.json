@@ -1,5 +1,5 @@
 {
-  "name": "chat_project",
+  "name": "nest_next_practice",
   "private": true,
   "scripts": {
     "build": "turbo build",
