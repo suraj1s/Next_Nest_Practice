@@ -10,44 +10,27 @@ const Page = () => {
     return await navigator.mediaDevices.getUserMedia(constraints);
   };
 
-  async function getConnectedDevices(type: any) {
-    const devices = await navigator.mediaDevices.enumerateDevices();
-    return devices.filter((device) => device.kind === type);
-  }
-
-  // listing all the connected media devices
-  // useEffect(() => {
-  //   getConnectedDevices("videoinput").then((videoCameras) => {
-  //     console.log("Cameras found:", videoCameras);
-  //     setNewCameraList(videoCameras);
-  //   });
-  // }, []);
-  // console.log(newCameraList, "newCameraList");
-  // Listen for changes to media devices and update the list accordingly
-  //   navigator.mediaDevices.addEventListener("devicechange", async (event) => {
-  //     const newCameraList = await getConnectedDevices("video");
-  //     setNewCameraList(newCameraList);
-  //   });
-
   const stremeRef = useRef<any>(null);
 
+  const closeAllStreams = () => {
+    console.log("close all streams");
+    if (currentStream) {
+      currentStream.getTracks().forEach((track) => track.stop());
+      setCurrentStream(undefined);
+      setStreamTitle("No Stream Selected");
+    }
+  };
   useEffect(() => {
-    console.log(
-      stremeRef.current,
-      "stremeRef.current",
-      currentStream,
-      "currentStream"
-    );
     if (stremeRef.current && currentStream) {
-      console.log("inside");
-      console.log(
-        currentStream?.getVideoTracks().length,
-        "currentStream? length"
-      );
-      console.log(
-        currentStream?.getAudioTracks().length,
-        "currentStream length"
-      );
+      // console.log("inside");
+      // console.log(
+      //   currentStream?.getVideoTracks().length,
+      //   "currentStream? length"
+      // );
+      // console.log(
+      //   currentStream?.getAudioTracks().length,
+      //   "currentStream length"
+      // );
       if (currentStream.getVideoTracks().length > 0) {
         setStreamTitle("Video");
         stremeRef.current.srcObject = currentStream;
@@ -62,8 +45,10 @@ const Page = () => {
     }
   }, [currentStream]);
 
-  // console.log(currentStream, "currentStream")
-
+  console.log(
+    currentStream?.getTracks().map((item) => item),
+    "currentStream"
+  );
   return (
     <div className="flex flex-col gap-5 max-w-3xl mx-auto py-20">
       <div className="flex gap-x-4 text-sm  ">
@@ -74,8 +59,11 @@ const Page = () => {
                 video: false,
                 audio: true,
               });
+              streamTitle === "Video" &&
+                currentStream?.getVideoTracks()[0].stop();
+
               setCurrentStream(stream);
-              console.log("Got MediaStream:", stream);
+              // console.log("Got MediaStream:", stream);
             } catch (error) {
               console.error("Error accessing media devices.", error);
             }
@@ -93,7 +81,7 @@ const Page = () => {
               });
               setCurrentStream(stream);
 
-              console.log("Got MediaStream:", stream);
+              // console.log("Got MediaStream:", stream);
             } catch (error) {
               console.error("Error accessing media devices.", error);
             }
@@ -102,21 +90,12 @@ const Page = () => {
         >
           Video{" "}
         </button>
-        {/* <button
-          onClick={async () => {}}
+        <button
+          onClick={() => closeAllStreams()}
           className="border border-slate-300 rounded-md  px-3 py-1 hover:bg-slate-700 hover:text-blue-400 "
         >
           Close Media{" "}
         </button>
-        <button
-          onClick={async () => {
-            const videoCameras = await getConnectedDevices("videoinput");
-            console.log("Cameras found:", videoCameras);
-          }}
-          className="border border-slate-300 rounded-md  px-3 py-1 hover:bg-slate-700 hover:text-blue-400 "
-        >
-          Get Connected divices
-        </button> */}
       </div>
       <div>
         <h1>{streamTitle}</h1>
@@ -125,14 +104,14 @@ const Page = () => {
             ref={stremeRef}
             autoPlay
             playsInline
-            controls = {true}
+            controls={true}
             className={`${streamTitle === "Audio" ? "block" : "hidden"}`}
           />
           <video
             ref={stremeRef}
             autoPlay
             playsInline
-            controls = {true}
+            controls={true}
             className={`${streamTitle === "Video" ? "block" : "hidden"}`}
           />
         </div>
@@ -156,4 +135,34 @@ export default Page;
               </div>
             );
           })} */
+}
+
+// async function getConnectedDevices(type: any) {
+//   const devices = await navigator.mediaDevices.enumerateDevices();
+//   return devices.filter((device) => device.kind === type);
+// }
+// listing all the connected media devices
+// useEffect(() => {
+//   getConnectedDevices("videoinput").then((videoCameras) => {
+//     console.log("Cameras found:", videoCameras);
+//     setNewCameraList(videoCameras);
+//   });
+// }, []);
+// console.log(newCameraList, "newCameraList");
+// Listen for changes to media devices and update the list accordingly
+//   navigator.mediaDevices.addEventListener("devicechange", async (event) => {
+//     const newCameraList = await getConnectedDevices("video");
+//     setNewCameraList(newCameraList);
+//   });
+
+{
+  /* <button
+          onClick={async () => {
+            const videoCameras = await getConnectedDevices("videoinput");
+            console.log("Cameras found:", videoCameras);
+          }}
+          className="border border-slate-300 rounded-md  px-3 py-1 hover:bg-slate-700 hover:text-blue-400 "
+        >
+          Get Connected divices
+        </button> */
 }
