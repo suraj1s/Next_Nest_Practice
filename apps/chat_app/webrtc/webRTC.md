@@ -44,8 +44,9 @@ sending the SPD we created other party we want to communcate with
 1. A wants to connect to B
 2. A creates an "offer", it finds all ICE candidates, security options, audio/video options and generates SDP, the offer is basically the
    SDP
+   A sets thet offeer to local session descripotion
 3. A signals the offer somehow to B (whatsapp)
-   here b tacke that offer and sets it to localdescription and created its sdp
+   here B takes that offer and sets it to remote session description and created its SDP and set to local session descripotion and send to A through signals
 4. B creates the "answer" after setting A's offer
 5. B signals the "answer" to A
 6. Connection is created
