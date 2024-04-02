@@ -1,4 +1,5 @@
 <!-- https://www.youtube.com/watch?v=FExZvpVvYxA -->
+<!-- https://github.com/piyushgarg-dev/React-webRTC -->
 
 ## WebRTC: Real-Time Communication
 
@@ -34,6 +35,26 @@ WebRTC (Web Real-Time Communication) is a powerful set of technologies that enab
 
 **Signaling the SDP:**
 
+- SDP alone cannot establish a connection. A separate signaling mechanism (e.g., WebSockets, HTTP requests) is necessary to exchange SDPs between peers.
+
+## WebRTC Connection Establishment Process:
+
+1. **Initiation:** Peer A initiates a connection request to peer B.
+2. **Offer Creation:**
+   - A generates an "offer" containing its ICE candidates, security options, audio/video preferences, and an SDP string summarizing this information.
+   - A sets the offer as its local session description.
+3. **Offer Signaling:** A transmits the offer (SDP) to B through a signaling channel (e.g., WebSockets in a web application).
+4. **Answer Creation:**
+   - B receives the offer and sets it as its remote session description.
+   - B creates an "answer" containing its ICE candidates, potentially modified based on A's offer, and generates its own SDP.
+   - B sets the answer as its local session description.
+5. **Answer Signaling:** B sends the answer (SDP) back to A via the signaling channel.
+6. **Connection Established:** Both peers now have the necessary information to establish a direct peer-to-peer connection or use a TURN server if required.
+
+This process allows for efficient and flexible real-time communication capabilities within web browsers.
+
+<!-- **Signaling the SDP:**
+
 - SDPs are typically exchanged through separate signaling channels outside WebRTC, such as WebSockets or dedicated signaling servers. These channels negotiate the connection and establish the appropriate communication paths.
 
 **Connection Establishment (Simplified Example):**
@@ -50,7 +71,7 @@ WebRTC (Web Real-Time Communication) is a powerful set of technologies that enab
 - **Security:** WebRTC offers security features like encryption and authentication to protect communication channels.
 - **Scalability:** While enabling peer-to-peer connections, WebRTC can also leverage central servers for tasks like signaling and media relaying in complex scenarios.
 
-This breakdown aims to demystify the core concepts of WebRTC. For more in-depth exploration, consider referring to official documentation and tutorials.
+This breakdown aims to demystify the core concepts of WebRTC. For more in-depth exploration, consider referring to official documentation and tutorials. -->
 
 <!-- webRTC: Real Time Communication
 uses UDP protocal instead of regular TCP
