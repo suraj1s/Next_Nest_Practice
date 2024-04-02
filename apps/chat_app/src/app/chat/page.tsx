@@ -1,4 +1,5 @@
 "use client";
+import WebRTC from "@/components/WebRTC";
 import { IMessageType, useSocket } from "@/context/socketProvider";
 import { useRouter } from "next/navigation";
 import React, { useEffect, useRef, useState } from "react";
@@ -52,7 +53,7 @@ const Page: React.FC = () => {
           <h1>
             {roomName} ({userName})
           </h1>
-         
+          <WebRTC />
         </div>
 
         <div
