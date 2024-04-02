@@ -2,15 +2,20 @@ class UserMedia {
   mediaInstance: MediaStream | null = null; // Initialize to null for clarity
 
   constructor() {
-    this.openAudioStream(); // Fetch audio stream in the constructor
+    this.openEmptyStream(); // Fetch audio stream in the constructor
+  }
+  async openEmptyStream() {
+    this.mediaInstance = await navigator.mediaDevices.getUserMedia();
   }
 
   async openVideoStream() {
     if (!this.mediaInstance) {
       this.mediaInstance = new MediaStream(); // Create a new stream if needed
     }
-
     if (!this.mediaInstance.getVideoTracks().length) {
+      if (!this.mediaInstance.getAudioTracks().length) {
+        await this.openAudioStream();
+      }
       try {
         const videoStream = await navigator.mediaDevices.getUserMedia({
           video: true,
@@ -25,6 +30,8 @@ class UserMedia {
       } catch (error) {
         console.error("Error opening video stream:", error);
       }
+    } else {
+      console.log("Video stream already exists");
     }
   }
 
@@ -59,6 +66,10 @@ class UserMedia {
           console.error("Error stopping audio stream:", error);
         }
       }
+
+      if (this.mediaInstance.getVideoTracks().length) {
+        this.closeVideoStream();
+      }
     } catch (error) {
       console.error("Error opening audio stream:", error);
     }
@@ -77,6 +88,15 @@ class UserMedia {
     }
   }
 
+  // async openAudioVideoStream() {
+  //   if (!this.mediaInstance?.getVideoTracks().length) {
+  //     await this.openVideoStream();
+  //   }
+  //   if (!this.mediaInstance?.getAudioTracks().length) {
+  //     await this.openAudioStream();
+  //   }
+  // }
+
   async closeAllStreams() {
     if (this.mediaInstance) {
       for (const track of this.mediaInstance.getTracks()) {
@@ -88,6 +108,13 @@ class UserMedia {
       }
       this.mediaInstance = null; // Clear the stream reference
     }
+  }
+
+  getMediaStream() {
+    if (this.mediaInstance) {
+      return this.mediaInstance.getTracks().map((track) => track);
+    }
+    return "No media stream available";
   }
 }
 
