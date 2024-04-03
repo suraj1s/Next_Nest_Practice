@@ -1,120 +1,117 @@
-// @ts-ignore
-import { Server } from "socket.io";
+import { Server, Socket } from "socket.io";
 
 class SocketService {
   private _io: Server;
-  private usersInRooms: any;
-  private userToSocket: any;
-  private socketToUser: any;
-  constructor() {
-    console.log("init socket service...");
-    this._io = new Server({
-      // connectionStateRecovery : {},
-      cors: {
-        allowedHeaders: ["*"],
-        origin: "http://localhost:3000",
-        // methods : ["GET", "POST"]
-      },
-    });
+  private usersInRooms: { [room: string]: string[] };
+  private userToSocket: UserToSocketMap;
+  private socketToUser: SocketToUserMap;
+
+  constructor(io: Server) {
+    this._io = io;
     this.usersInRooms = {};
-    this.userToSocket = new Map();
-    this.socketToUser = new Map();
+    this.userToSocket = {};
+    this.socketToUser = {};
   }
 
   public initListeners() {
     const io = this._io;
-    console.log("initiliazing socket listeners...");
-    io.on("connect", (socket: any) => {
+
+    io.on("connect", (socket: Socket) => {
       console.log("a new socket connected", socket.id);
 
-      socket.on(
-        "room:join",
-        ({ room, user }: { room: string; user: string }) => {
-          const rooms = io.sockets.adapter.rooms;
-          console.log(`Joined room: ${room}`);
-          if (!rooms.has(room)) {
-            // Room doesn't exist, so you can join it
-            socket.join(room);
-          } else {
-            console.log(`Room ${room} already exists`);
-            // Handle the case when the room already exists
-          }
-
-          if (!this.usersInRooms[room]) {
-            this.usersInRooms[room] = [];
-          }
-          this.usersInRooms[room].push(socket.id);
-          this.userToSocket.set(user, socket.id);
-          this.socketToUser.set(socket.id, user);
-          console.log(this.usersInRooms , "users in room")
-          const roomUsers = this.usersInRooms[room]
-          let roomUsersName = []
-          if(roomUsers){
-            roomUsersName = roomUsers.map((socketId: string) =>
-            this.socketToUser.get(socketId)
-          );
-          }
-          socket.to(room).emit("room:userJoined", {
-            users: roomUsersName,
-          });
-        }
-      );
-
-      socket.on("getUsersInRoom", (room: string) => {
-        const users = this.usersInRooms[room] || [];
-        io.to(room).emit("usersInRoom", users);
+      socket.on("room:join", ({ room, user }: { room: string; user: string }) => {
+        this.handleRoomJoin(socket, room, user);
       });
 
-      socket.on(
-        "client:message",
-        ({
-          message,
-        }: {
-          message: {
-            message: string;
-            room: string;
-            user: string;
-          };
-        }) => {
-          socket.join(message.room);
-          console.log("new message recieved ", message);
-          // io.emit("server:message",  message );
-          // io.in(message.room).emit("server:message", message)
-          socket.to(message.room).emit("server:message", message);
-          console.log(this.usersInRooms[message.room] , "users in room")
-          const roomUsers = this.usersInRooms[message.room]
-          let roomUsersName = []
-          if(roomUsers){
-            roomUsersName = roomUsers.map((socketId: string) =>
-            this.socketToUser.get(socketId)
-          );
-          }
-          socket.to(message.room).emit("room:userJoined", {
-            users: roomUsersName,
-          });
-        }
-      );
+      socket.on("getUsersInRoom", (room: string) => {
+        this.handleGetUsersInRoom(socket, room);
+      });
+
+      socket.on("client:message", ({ message }: { message: any }) => {
+        this.handleClientMessage(socket, message);
+      });
 
       socket.on("call:start", (data: any) => {
-        console.log("call:start", data);
-        socket.to(data.room).emit("call:revieve", data);
+        this.handleCallStart(socket, data);
       });
 
       socket.on("call:answer", (data: any) => {
-        console.log("call:answer", data);
-        socket.to(data.room).emit("call:callResponse", data);
+        this.handleCallAnswer(socket, data);
       });
 
       socket.on("call:reject", (data: any) => {
-        console.log("call:reject", data);
-        socket.to(data.room).emit("call:callResponse", data);
+        this.handleCallReject(socket, data);
       });
 
       socket.on("disconnect", () => {
-        console.log("user disconnected msg:form server");
+        this.handleDisconnect(socket);
       });
     });
   }
+
+  private handleRoomJoin(socket: Socket, room: string, user: string) {
+    console.log(`User ${user} joining room ${room}`);
+
+    // Join room
+    socket.join(room);
+
+    // Store user-room mapping
+    if (!this.usersInRooms[room]) {
+      this.usersInRooms[room] = [];
+    }
+    this.usersInRooms[room].push(user);
+    this.userToSocket[user] = socket.id;
+    this.socketToUser[socket.id] = user;
+
+    // Emit event to inform other users in the room about the new user
+    const roomUsers = this.usersInRooms[room];
+    if(!roomUsers) return;
+    const roomUsersName = roomUsers?.map((user: string) => this.socketToUser[user]);
+    socket.to(room).emit("room:userJoined", { users: roomUsersName });
+  }
+
+  private handleGetUsersInRoom(socket: Socket, room: string) {
+    console.log(`Request for users in room ${room}`);
+    const users = this.usersInRooms[room] || [];
+    socket.emit("usersInRoom", users);
+  }
+
+  private handleClientMessage(socket: Socket, message: any) {
+    console.log("Received message:", message);
+    // Broadcast message to everyone in the room except the sender
+    socket.to(message.room).emit("server:message", message);
+  }
+
+  private handleCallStart(socket: Socket, data: any) {
+    console.log("Starting call:", data);
+    socket.to(data.room).emit("call:receive", data);
+  }
+
+  private handleCallAnswer(socket: Socket, data: any) {
+    console.log("Answering call:", data);
+    socket.to(data.room).emit("call:callResponse", data);
+  }
+
+  private handleCallReject(socket: Socket, data: any) {
+    console.log("Rejecting call:", data);
+    socket.to(data.room).emit("call:callResponse", data);
+  }
+
+  private handleDisconnect(socket: Socket) {
+    const disconnectedUser = this.socketToUser[socket.id];
+    console.log(`User ${disconnectedUser} disconnected`);
+    delete this.socketToUser[socket.id];
+    const roomKeys = Object.keys(this.usersInRooms);
+    for (const room of roomKeys) {
+      if (this.usersInRooms[room].includes(disconnectedUser)) {
+        this.usersInRooms[room] = this.usersInRooms[room].filter((user: string) => user !== disconnectedUser);
+        const roomUsers = this.usersInRooms[room];
+        const roomUsersName = roomUsers.map((user: string) => this.socketToUser[user]);
+        socket.to(room).emit("room:userLeft", { users: roomUsersName });
+      }
+    }
+  }
+
   get io() {
     return this._io;
   }

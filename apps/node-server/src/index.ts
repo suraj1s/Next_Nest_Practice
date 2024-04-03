@@ -1,5 +1,5 @@
 import http from 'http';
-import SocketService from './services/socket';
+import SocketService from './services/socket-old';
 
 // as mentiond in typeorm docs
 import "reflect-metadata"
