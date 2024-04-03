@@ -1,4 +1,3 @@
-"use client";
 class UserMedia {
   mediaInstance: MediaStream | null = null; // Initialize to null for clarity
 
@@ -16,9 +15,6 @@ class UserMedia {
       });
     }
     if (!this.mediaInstance.getVideoTracks().length) {
-      if (!this.mediaInstance.getAudioTracks().length) {
-        await this.openAudioStream();
-      }
       try {
         const videoStream = await navigator.mediaDevices.getUserMedia({
           video: true,
@@ -33,16 +29,35 @@ class UserMedia {
       } catch (error) {
         console.error("Error opening video stream:", error);
       }
+      if (!this.mediaInstance.getAudioTracks().length) {
+        try {
+          const audioStream = await navigator.mediaDevices.getUserMedia({
+            audio: true,
+          });
+          const audioTrack = audioStream.getVideoTracks()[0];
+          this.mediaInstance.addTrack(audioTrack);
+          try {
+            audioStream.getTracks().forEach((track) => track.stop());
+          } catch (error) {
+            console.error("Error stopping audio stream:", error);
+          }
+        } catch (error) {
+          console.error("Error opening video stream:", error);
+        }
+      }
     } else {
-      console.log("Video stream already exists");
+      console.log("Video stream already exists", this.mediaInstance.getVideoTracks());
     }
   }
 
   async closeVideoStream() {
+    console.log("out");
     if (this.mediaInstance) {
+      console.log("in");
       const videoTracks = this.mediaInstance.getVideoTracks();
       for (const track of videoTracks) {
         try {
+          console.log(track, "closing track");
           track.stop();
         } catch (error) {
           console.error("Error stopping video track:", error);
@@ -69,9 +84,12 @@ class UserMedia {
           console.error("Error stopping audio stream:", error);
         }
       }
-
       if (this.mediaInstance.getVideoTracks().length) {
-        this.closeVideoStream();
+        console.log(
+          this.mediaInstance.getVideoTracks().length,
+          "video track length"
+        );
+        await this.closeVideoStream();
       }
     } catch (error) {
       console.error("Error opening audio stream:", error);
@@ -115,7 +133,7 @@ class UserMedia {
 
   getMediaStream() {
     if (this.mediaInstance) {
-      return this.mediaInstance.getTracks().map((track) => track);
+      return  this.mediaInstance.getTracks().map((track) => track);
     }
     return "No media stream available";
   }
