@@ -1,9 +1,6 @@
 class UserMedia {
-  mediaInstance: MediaStream | null = null; // Initialize to null for clarity
-
+  mediaInstance: MediaStream | null = null;
   constructor() {
-    // this.openAudioStream(); // Fetch audio stream in the constructor
-    // this.mediaInstance = null
     console.log("userMediaIntance initiated...");
   }
 
@@ -14,7 +11,7 @@ class UserMedia {
       });
       const videoTrack = videoStream.getVideoTracks()[0];
       this.mediaInstance?.addTrack(videoTrack);
-      // if we remoce the teach and stop the stream it will not work 
+      // if we remove the teach and stop the stream it will not work as this is padded by reference
       // try {
       //   videoStream.getTracks().forEach((track) => {
       //     track.stop();
@@ -35,29 +32,21 @@ class UserMedia {
       });
       const audioTrack = audioStream.getAudioTracks()[0];
       this.mediaInstance?.addTrack(audioTrack);
-      try {
-        audioStream.getTracks().forEach((track) => {
-          track.stop();
-          audioStream.removeTrack(track);
-        });
-      } catch (error) {
-        console.error("Error stopping audio stream:", error);
-      }
     } catch (error) {
       console.error("Error opening audio stream:", error);
     }
   }
+
   async openVideoStream() {
     if (!this.mediaInstance) {
       this.mediaInstance = await navigator.mediaDevices.getUserMedia({
         audio: true,
         video: true,
       });
-    }
-    else if (!this.mediaInstance.getVideoTracks().length) {
+    } else if (!this.mediaInstance.getVideoTracks().length) {
       await this.addVideoTrack();
     }
-
+    // this is not media instance already exists with audio track
     // if (!this.mediaInstance.getAudioTracks().length) {
     //   await this.openAudioStream();
     // }
@@ -84,8 +73,7 @@ class UserMedia {
         this.mediaInstance = await navigator.mediaDevices.getUserMedia({
           audio: true,
         });
-      }
-      else if (!this.mediaInstance.getAudioTracks().length) {
+      } else if (!this.mediaInstance.getAudioTracks().length) {
         await this.addAudioTrack();
       }
       if (this.mediaInstance.getVideoTracks().length) {
@@ -110,15 +98,6 @@ class UserMedia {
     }
   }
 
-  // async openAudioVideoStream() {
-  //   if (!this.mediaInstance?.getVideoTracks().length) {
-  //     await this.openVideoStream();
-  //   }
-  //   if (!this.mediaInstance?.getAudioTracks().length) {
-  //     await this.openAudioStream();
-  //   }
-  // }
-
   async closeAllStreams() {
     if (this.mediaInstance) {
       for (const track of this.mediaInstance.getTracks()) {
@@ -139,6 +118,6 @@ class UserMedia {
     }
     return "No media stream available";
   }
-}
 
+}
 export const userMediaIntance = new UserMedia();
