@@ -1,37 +1,48 @@
-import { Entity, PrimaryGeneratedColumn, Column } from "typeorm"
+import { Entity, Column, OneToMany, ManyToMany, JoinTable } from "typeorm";
+import { Message } from "./Message";
+import { BaseModel } from "./BaseModel";
+import { Group } from "./Group";
 
 @Entity()
-export class User {
-    @PrimaryGeneratedColumn()
-    id: number
+export class User extends BaseModel {
+  @Column({ length: 100, unique: true })
+  userName: string;
 
-    @Column({
-        length: 100,
-    })
-    firstName: string
+  @Column({ nullable: true })
+  email: string;
 
-    @Column({
-        length: 100,
-    })
-    lastName: string
-    
-    @Column("int")
-    age: number
-   
-    @Column("boolean")
-    isAuthor: boolean
+  @Column({ nullable: true })
+  profilePicture: string; // URL or path
 
-    @Column("boolean")
-    isAdmin: boolean
+  @OneToMany(() => Message, (message) => message.sender)
+  messagesSent: Message[];
+
+  
+
+  @ManyToMany(() => Group, (group) => group.members)
+  @JoinTable({
+    name: "user_groups",
+    joinColumn: { name: "userId", referencedColumnName: "id" },
+    inverseJoinColumn: { name: "groupId", referencedColumnName: "id" },
+  })
+  groups: Group[];
+
+  // Placeholders for audio/video call functionality
+  callStatus: string; // "available", "in_call", etc.
+  callHistory: []; // Array of call objects
 
     constructor() {
-        this.id = 0; // Or initialize with an appropriate default value
-        this.firstName = "";
-        this.lastName = "";
-        this.age = 10;
-        this.isAdmin = false;
-        this.isAuthor = false;
+        super();
+        this.userName = "";
+        this.email = "";
+        this.profilePicture = "";
+        this.messagesSent = [];
+        this.groups = [];
+        this.callStatus = "available";
+        this.callHistory = [];
     }
 }
+
+
 
 
