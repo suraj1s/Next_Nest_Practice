@@ -1,3 +1,5 @@
+"use client"
+
 import React, {
   createContext,
   useCallback,
@@ -8,7 +10,7 @@ import React, {
 } from "react";
 import { io, Socket } from "socket.io-client";
 
-interface IMessageType {
+export interface IMessageType {
   message: string;
   room: string;
   user: string;
