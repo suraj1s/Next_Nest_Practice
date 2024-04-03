@@ -1,16 +1,19 @@
+"use client";
 class UserMedia {
   mediaInstance: MediaStream | null = null; // Initialize to null for clarity
 
   constructor() {
-    this.openEmptyStream(); // Fetch audio stream in the constructor
-  }
-  async openEmptyStream() {
-    this.mediaInstance = await navigator.mediaDevices.getUserMedia();
+    // this.openAudioStream(); // Fetch audio stream in the constructor
+    // this.mediaInstance = null
+    console.log("userMediaIntance initiated...");
   }
 
   async openVideoStream() {
     if (!this.mediaInstance) {
-      this.mediaInstance = new MediaStream(); // Create a new stream if needed
+      this.mediaInstance = await navigator.mediaDevices.getUserMedia({
+        audio: true,
+        video: true,
+      });
     }
     if (!this.mediaInstance.getVideoTracks().length) {
       if (!this.mediaInstance.getAudioTracks().length) {
@@ -118,4 +121,4 @@ class UserMedia {
   }
 }
 
-export default new UserMedia();
+export const userMediaIntance = new UserMedia();
