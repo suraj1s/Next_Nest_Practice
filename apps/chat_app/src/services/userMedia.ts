@@ -7,6 +7,46 @@ class UserMedia {
     console.log("userMediaIntance initiated...");
   }
 
+  async addVideoTrack() {
+    try {
+      const videoStream = await navigator.mediaDevices.getUserMedia({
+        video: true,
+      });
+      const videoTrack = videoStream.getVideoTracks()[0];
+      this.mediaInstance?.addTrack(videoTrack);
+      // if we remoce the teach and stop the stream it will not work 
+      // try {
+      //   videoStream.getTracks().forEach((track) => {
+      //     track.stop();
+      //     videoStream.removeTrack(track);
+      //   });
+      // } catch (error) {
+      //   console.error("Error stopping video stream:", error);
+      // }
+    } catch (error) {
+      console.error("Error opening video stream:", error);
+    }
+  }
+
+  async addAudioTrack() {
+    try {
+      const audioStream = await navigator.mediaDevices.getUserMedia({
+        audio: true,
+      });
+      const audioTrack = audioStream.getAudioTracks()[0];
+      this.mediaInstance?.addTrack(audioTrack);
+      try {
+        audioStream.getTracks().forEach((track) => {
+          track.stop();
+          audioStream.removeTrack(track);
+        });
+      } catch (error) {
+        console.error("Error stopping audio stream:", error);
+      }
+    } catch (error) {
+      console.error("Error opening audio stream:", error);
+    }
+  }
   async openVideoStream() {
     if (!this.mediaInstance) {
       this.mediaInstance = await navigator.mediaDevices.getUserMedia({
@@ -14,51 +54,23 @@ class UserMedia {
         video: true,
       });
     }
-    if (!this.mediaInstance.getVideoTracks().length) {
-      try {
-        const videoStream = await navigator.mediaDevices.getUserMedia({
-          video: true,
-        });
-        const videoTrack = videoStream.getVideoTracks()[0];
-        this.mediaInstance.addTrack(videoTrack);
-        try {
-          videoStream.getTracks().forEach((track) => track.stop());
-        } catch (error) {
-          console.error("Error stopping video stream:", error);
-        }
-      } catch (error) {
-        console.error("Error opening video stream:", error);
-      }
-      if (!this.mediaInstance.getAudioTracks().length) {
-        try {
-          const audioStream = await navigator.mediaDevices.getUserMedia({
-            audio: true,
-          });
-          const audioTrack = audioStream.getVideoTracks()[0];
-          this.mediaInstance.addTrack(audioTrack);
-          try {
-            audioStream.getTracks().forEach((track) => track.stop());
-          } catch (error) {
-            console.error("Error stopping audio stream:", error);
-          }
-        } catch (error) {
-          console.error("Error opening video stream:", error);
-        }
-      }
-    } else {
-      console.log("Video stream already exists", this.mediaInstance.getVideoTracks());
+    else if (!this.mediaInstance.getVideoTracks().length) {
+      await this.addVideoTrack();
     }
+
+    // if (!this.mediaInstance.getAudioTracks().length) {
+    //   await this.openAudioStream();
+    // }
   }
 
   async closeVideoStream() {
-    console.log("out");
     if (this.mediaInstance) {
-      console.log("in");
       const videoTracks = this.mediaInstance.getVideoTracks();
       for (const track of videoTracks) {
         try {
           console.log(track, "closing track");
           track.stop();
+          this.mediaInstance.removeTrack(track); // Then remove it from the array
         } catch (error) {
           console.error("Error stopping video track:", error);
         }
@@ -72,23 +84,11 @@ class UserMedia {
         this.mediaInstance = await navigator.mediaDevices.getUserMedia({
           audio: true,
         });
-      } else if (!this.mediaInstance.getAudioTracks().length) {
-        const audioStream = await navigator.mediaDevices.getUserMedia({
-          audio: true,
-        });
-        const audioTrack = audioStream.getAudioTracks()[0];
-        this.mediaInstance.addTrack(audioTrack);
-        try {
-          audioStream.getTracks().forEach((track) => track.stop());
-        } catch (error) {
-          console.error("Error stopping audio stream:", error);
-        }
+      }
+      else if (!this.mediaInstance.getAudioTracks().length) {
+        await this.addAudioTrack();
       }
       if (this.mediaInstance.getVideoTracks().length) {
-        console.log(
-          this.mediaInstance.getVideoTracks().length,
-          "video track length"
-        );
         await this.closeVideoStream();
       }
     } catch (error) {
@@ -102,6 +102,7 @@ class UserMedia {
       for (const track of audioTracks) {
         try {
           track.stop();
+          this.mediaInstance.removeTrack(track);
         } catch (error) {
           console.error("Error stopping audio track:", error);
         }
@@ -123,6 +124,7 @@ class UserMedia {
       for (const track of this.mediaInstance.getTracks()) {
         try {
           track.stop();
+          this.mediaInstance.removeTrack(track);
         } catch (error) {
           console.error("Error stopping track:", error);
         }
@@ -133,7 +135,7 @@ class UserMedia {
 
   getMediaStream() {
     if (this.mediaInstance) {
-      return  this.mediaInstance.getTracks().map((track) => track);
+      return this.mediaInstance.getTracks().map((track) => track);
     }
     return "No media stream available";
   }
