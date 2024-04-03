@@ -1,12 +1,13 @@
 "use client";
-import WebRTC from "@/components/webrtc/WebRTC";
+import Calls from "@/components/webrtc/Calls";
 import { IMessageType, useSocket } from "@/context/socketProvider";
 import { useRouter } from "next/navigation";
 import React, { useEffect, useRef, useState } from "react";
+import { json } from "stream/consumers";
 
 const Page: React.FC = () => {
   const scrollRef = useRef<HTMLDivElement>(null);
-  const { sendMessage, messages } = useSocket();
+  const { sendMessage, messages, roomMembers } = useSocket();
   const [userName, setUserName] = useState("");
   const [roomName, setRoomName] = useState("");
   const [allMessages, setAllMessages] = useState<IMessageType[]>([]);
@@ -49,11 +50,24 @@ const Page: React.FC = () => {
     <div className="h-screen  ">
       <div>Contacts</div>
       <div className="relative container max-h-[90%] h-full border-4 border-gray-300 rounded-3xl px-[2.5%] pt-16 pb-20 max-w-[55%] ">
-        <div className="absolute top-5 w-full pr-[10%]  font-bold text-2xl text-gray-300  flex-col sm:flex-row gap-5 flex justify-between  ">
-          <h1>
-            {roomName} ({userName})
-          </h1>
-          <WebRTC />
+        <div>
+          <div className="absolute top-5 w-full pr-[10%]  font-bold text-2xl text-gray-300  flex-col sm:flex-row gap-5 flex justify-between  ">
+            <h1>
+              {roomName} ({userName})
+            </h1>
+            {/* <Calls /> */}
+          </div>
+          <div>
+            other users {JSON.stringify(roomMembers)}
+            {/* {roomMembers.map(
+              (user, id) =>
+                user !== userName && (
+                  <div key={id} className="bg-gray-800 p-2 rounded-lg">
+                    <p className="text-gray-200 font-medium">{user}</p>
+                  </div>
+                )
+            )} */}
+          </div>
         </div>
 
         <div

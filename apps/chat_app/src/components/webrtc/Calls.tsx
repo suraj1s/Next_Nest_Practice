@@ -9,7 +9,7 @@ const Calls = () => {
   const stremeRef = useRef<any>(null);
   useEffect(() => {
     if (userMediaIntance) {
-      console.log(userMediaIntance.getMediaStream(), " userMediaIntance");
+      // console.log(userMediaIntance.getMediaStream(), " userMediaIntance");
 
       if (streamTitle === "Audio") {
         stremeRef.current.srcObject = userMediaIntance.mediaInstance;
@@ -31,12 +31,12 @@ const Calls = () => {
     try {
       if (userMediaIntance) {
         if (video) {
-          console.log(video, " video");
+          // console.log(video, " video");
           await userMediaIntance?.openVideoStream();
           setStreamTitle("Video");
         }
         if (audio) {
-          console.log(audio, " audio");
+          // console.log(audio, " audio");
           await userMediaIntance?.openAudioStream();
           setStreamTitle("Audio");
         }
@@ -47,7 +47,7 @@ const Calls = () => {
   };
 
   return (
-    <div className="flex flex-col gap-5 max-w-3xl mx-auto py-20">
+    <div className="flex flex-col gap-5">
       <div className="flex gap-x-4 text-sm  ">
         <button
           onClick={() => handleOpenMedia({ audio: true })}
