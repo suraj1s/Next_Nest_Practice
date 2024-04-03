@@ -27,15 +27,6 @@ const Page = () => {
         stremeRef.current.srcObject = userMediaIntance.mediaInstance;
       }
       if (streamTitle === "Video") {
-        navigator.mediaDevices
-          .getUserMedia({
-            audio: true,
-            video: true,
-          })
-          .then((a) => {
-            console.log(a.getTracks(), "hello");
-            // stremeRef.current.srcObject = a;
-          });
         console.log(userMediaIntance.mediaInstance?.getTracks() , "video inbsstans ");
         stremeRef.current.srcObject =
           userMediaIntance.mediaInstance
