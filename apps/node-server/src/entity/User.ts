@@ -1,4 +1,11 @@
-import { Entity, Column, OneToMany, ManyToMany, JoinTable } from "typeorm";
+import {
+  Entity,
+  Column,
+  OneToMany,
+  ManyToMany,
+  JoinTable,
+  JoinColumn,
+} from "typeorm";
 import { Message } from "./Message";
 import { BaseModel } from "./BaseModel";
 import { Group } from "./Group";
@@ -17,7 +24,9 @@ export class User extends BaseModel {
   @OneToMany(() => Message, (message) => message.sender)
   messagesSent: Message[];
 
-  
+  @OneToMany(() => Message, (message) => message.receiver) // Specify the inverse side
+  @JoinColumn({ name: "receivedMessageId", referencedColumnName: "id" }) // Optional custom join column name
+  messagesReceived?: Message; // Make it nullable to avoid potential errors
 
   @ManyToMany(() => Group, (group) => group.members)
   @JoinTable({
@@ -31,18 +40,14 @@ export class User extends BaseModel {
   callStatus: string; // "available", "in_call", etc.
   callHistory: []; // Array of call objects
 
-    constructor() {
-        super();
-        this.userName = "";
-        this.email = "";
-        this.profilePicture = "";
-        this.messagesSent = [];
-        this.groups = [];
-        this.callStatus = "available";
-        this.callHistory = [];
-    }
+  constructor() {
+    super();
+    this.userName = "";
+    this.email = "";
+    this.profilePicture = "";
+    this.messagesSent = [];
+    this.groups = [];
+    this.callStatus = "available";
+    this.callHistory = [];
+  }
 }
-
-
-
-
