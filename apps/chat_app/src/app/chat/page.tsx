@@ -5,7 +5,7 @@ import React, { useEffect, useRef, useState } from "react";
 
 const Page: React.FC = () => {
   const scrollRef = useRef<HTMLDivElement>(null);
-  const { sendMessage, messages } = useSocket();
+  const { sendMessage, messages, roomMembers } = useSocket();
   const [userName, setUserName] = useState("");
   const [roomName, setRoomName] = useState("");
   const [allMessages, setAllMessages] = useState<IMessageType[]>([]);
@@ -44,15 +44,36 @@ const Page: React.FC = () => {
     e.target[0].value = "";
   };
 
+  console.log(roomMembers, "roomMembers");
   return (
     <div className="h-screen  ">
       <div>Contacts</div>
       <div className="relative container max-h-[90%] h-full border-4 border-gray-300 rounded-3xl px-[2.5%] pt-16 pb-20 max-w-[55%] ">
-        <div className="absolute top-5 w-full pr-[10%]  font-bold text-2xl text-gray-300  flex-col sm:flex-row gap-5 flex justify-between  ">
-          <h1>
-            {roomName} ({userName})
-          </h1>
-         
+        <div>
+          <div className="absolute top-5 w-full pr-[10%]  font-bold text-2xl text-gray-300  flex-col sm:flex-row gap-5 flex justify-between  ">
+            <h1>
+              {roomName} ({userName})
+            </h1>
+            {/* <Calls /> */}
+          </div>
+          <div>
+            other users
+            <div className="flex flex-wrap gap-5 ">
+            {roomMembers.length > 0 ? (
+              roomMembers.map(
+                (user, id) =>
+                  user !== userName && (
+                    <div key={id} className="bg-gray-800 p-2 rounded-lg w-fit">
+                      <p className="text-gray-200 font-medium">{user}</p>
+                    </div>
+                  )
+              )
+            ) : (
+              <p>No one in Room</p>
+            )}
+
+            </div>
+          </div>
         </div>
 
         <div

@@ -1,10 +1,23 @@
 import http from 'http';
 import SocketService from './services/socket';
+import "reflect-metadata"; // Required for TypeORM
 
-// as mentiond in typeorm docs
-import "reflect-metadata"
+// require('dotenv').config();
+
+// let AppDataSource: DataSource;
+
+// console.log(process.env.NODE_ENV , "process.env.NODE_ENV");
+// if (process.env.NODE_ENV === "development") {
+//   AppDataSource = require("./development").AppDataSource;
+// } else {
+//   AppDataSource = require("./production").AppDataSource;
+// }
 
 async function startServer() {
+  try {
+    // Establish database connection
+    // await AppDataSource.initialize();
+    console.log("Connected to database");
 
     const socketService = new SocketService();
     const httpServer = http.createServer();
@@ -12,11 +25,13 @@ async function startServer() {
 
     socketService.io.attach(httpServer);
 
-    httpServer.listen(PORT , () => console.log(`Server is running on port ${PORT}`));
+    httpServer.listen(PORT, () => console.log(`Server is running on port ${PORT}`));
 
     socketService.initListeners();
-
-    
-    }
+  } catch (error) {
+    console.error("Error starting server:", error);
+    process.exit(1); // Exit with an error code
+  }
+}
 
 startServer();

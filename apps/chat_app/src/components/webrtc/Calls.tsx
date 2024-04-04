@@ -3,13 +3,13 @@
 import { userMediaIntance } from "@/services/userMedia";
 import React, { useEffect, useRef, useState } from "react";
 
-const Page = () => {
+const Calls = () => {
   // const [newCameraList, setNewCameraList] = useState<MediaDeviceInfo[]>([]);
   const [streamTitle, setStreamTitle] = useState<string>("No Stream Selected");
   const stremeRef = useRef<any>(null);
   useEffect(() => {
     if (userMediaIntance) {
-      console.log(userMediaIntance.getMediaStream(), " userMediaIntance");
+      // console.log(userMediaIntance.getMediaStream(), " userMediaIntance");
 
       if (streamTitle === "Audio") {
         stremeRef.current.srcObject = userMediaIntance.mediaInstance;
@@ -31,12 +31,12 @@ const Page = () => {
     try {
       if (userMediaIntance) {
         if (video) {
-          console.log(video, " video");
+          // console.log(video, " video");
           await userMediaIntance?.openVideoStream();
           setStreamTitle("Video");
         }
         if (audio) {
-          console.log(audio, " audio");
+          // console.log(audio, " audio");
           await userMediaIntance?.openAudioStream();
           setStreamTitle("Audio");
         }
@@ -47,7 +47,7 @@ const Page = () => {
   };
 
   return (
-    <div className="flex flex-col gap-5 max-w-3xl mx-auto py-20">
+    <div className="flex flex-col gap-5">
       <div className="flex gap-x-4 text-sm  ">
         <button
           onClick={() => handleOpenMedia({ audio: true })}
@@ -83,8 +83,6 @@ const Page = () => {
           />
           <video
             ref={stremeRef}
-            width={400}
-            height={300}
             autoPlay
             playsInline
             controls={true}
@@ -96,4 +94,9 @@ const Page = () => {
   );
 };
 
-export default Page;
+export default Calls;
+
+
+
+
+

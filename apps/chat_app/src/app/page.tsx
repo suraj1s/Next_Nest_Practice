@@ -1,4 +1,4 @@
-"use client"
+"use client";
 
 import { useSocket } from "@/context/socketProvider";
 import { useRouter } from "next/navigation";
@@ -8,14 +8,14 @@ export default function Home() {
   const { createRoom } = useSocket();
   const handelsubmit = (e: any) => {
     e.preventDefault();
-    console.log(e.target[0].value, e.target[1].value)
+    console.log(e.target[0].value, e.target[1].value);
     const room_name = e.target[0].value;
     const user_name = e.target[1].value;
-    createRoom(room_name);
+    createRoom({ room: room_name, user: user_name });
     sessionStorage.setItem("room_name", room_name);
     sessionStorage.setItem("user_name", user_name);
     router.push("/chat");
-  }
+  };
   return (
     <div className=" font-semibold p-40 ">
       {/* <h1>Chat App</h1>
@@ -41,9 +41,10 @@ export default function Home() {
         </div>
         <button
           type="submit"
-          className="bg-slate-800 w-[100px] flex items-center justify-center py-3 rounded-lg h-10 text-gray-200 font-medium  outline-slate-800" >
-            Join
-          </button>
+          className="bg-slate-800 w-[100px] flex items-center justify-center py-3 rounded-lg h-10 text-gray-200 font-medium  outline-slate-800"
+        >
+          Join
+        </button>
       </form>
     </div>
   );
