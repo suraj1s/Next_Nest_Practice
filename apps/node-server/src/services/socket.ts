@@ -6,8 +6,15 @@ class SocketService {
   private userToSocket: UserToSocketMap;
   private socketToUser: SocketToUserMap;
 
-  constructor(io: Server) {
-    this._io = io;
+  constructor() {
+    this._io = new Server({
+      // connectionStateRecovery : {},
+      cors: {
+        allowedHeaders: ["*"],
+        origin: "http://localhost:3000",
+        // methods : ["GET", "POST"]
+      },
+    });
     this.usersInRooms = {};
     this.userToSocket = {};
     this.socketToUser = {};
@@ -19,9 +26,12 @@ class SocketService {
     io.on("connect", (socket: Socket) => {
       console.log("a new socket connected", socket.id);
 
-      socket.on("room:join", ({ room, user }: { room: string; user: string }) => {
-        this.handleRoomJoin(socket, room, user);
-      });
+      socket.on(
+        "room:join",
+        ({ room, user }: { room: string; user: string }) => {
+          this.handleRoomJoin(socket, room, user);
+        }
+      );
 
       socket.on("getUsersInRoom", (room: string) => {
         this.handleGetUsersInRoom(socket, room);
@@ -65,9 +75,10 @@ class SocketService {
 
     // Emit event to inform other users in the room about the new user
     const roomUsers = this.usersInRooms[room];
-    if(!roomUsers) return;
-    const roomUsersName = roomUsers?.map((user: string) => this.socketToUser[user]);
-    socket.to(room).emit("room:userJoined", { users: roomUsersName });
+    console.log(roomUsers, "roomUsers");
+    // socket.to(room).emit("room:userJoined", { users: roomUsers });
+    this._io.in(room).emit("room:userJoined", { users: roomUsers });
+
   }
 
   private handleGetUsersInRoom(socket: Socket, room: string) {
@@ -104,9 +115,13 @@ class SocketService {
     const roomKeys = Object.keys(this.usersInRooms);
     for (const room of roomKeys) {
       if (this.usersInRooms[room].includes(disconnectedUser)) {
-        this.usersInRooms[room] = this.usersInRooms[room].filter((user: string) => user !== disconnectedUser);
+        this.usersInRooms[room] = this.usersInRooms[room].filter(
+          (user: string) => user !== disconnectedUser
+        );
         const roomUsers = this.usersInRooms[room];
-        const roomUsersName = roomUsers.map((user: string) => this.socketToUser[user]);
+        const roomUsersName = roomUsers.map(
+          (user: string) => this.socketToUser[user]
+        );
         socket.to(room).emit("room:userLeft", { users: roomUsersName });
       }
     }

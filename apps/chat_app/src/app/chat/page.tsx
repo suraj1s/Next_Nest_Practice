@@ -1,9 +1,7 @@
 "use client";
-import Calls from "@/components/webrtc/Calls";
 import { IMessageType, useSocket } from "@/context/socketProvider";
 import { useRouter } from "next/navigation";
 import React, { useEffect, useRef, useState } from "react";
-import { json } from "stream/consumers";
 
 const Page: React.FC = () => {
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -46,6 +44,7 @@ const Page: React.FC = () => {
     e.target[0].value = "";
   };
 
+  console.log(roomMembers, "roomMembers");
   return (
     <div className="h-screen  ">
       <div>Contacts</div>
@@ -58,15 +57,22 @@ const Page: React.FC = () => {
             {/* <Calls /> */}
           </div>
           <div>
-            other users {JSON.stringify(roomMembers)}
-            {/* {roomMembers.map(
-              (user, id) =>
-                user !== userName && (
-                  <div key={id} className="bg-gray-800 p-2 rounded-lg">
-                    <p className="text-gray-200 font-medium">{user}</p>
-                  </div>
-                )
-            )} */}
+            other users
+            <div className="flex flex-wrap gap-5 ">
+            {roomMembers.length > 0 ? (
+              roomMembers.map(
+                (user, id) =>
+                  user !== userName && (
+                    <div key={id} className="bg-gray-800 p-2 rounded-lg w-fit">
+                      <p className="text-gray-200 font-medium">{user}</p>
+                    </div>
+                  )
+              )
+            ) : (
+              <p>No one in Room</p>
+            )}
+
+            </div>
           </div>
         </div>
 
