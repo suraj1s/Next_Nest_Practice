@@ -1,4 +1,4 @@
-"use client"
+"use client";
 
 import React, {
   createContext,
@@ -18,7 +18,7 @@ export interface IMessageType {
 
 interface ISocketContext {
   sendMessage: (msg: IMessageType) => void;
-  createRoom: (room: string, user: string) => void;
+  createRoom: ({ room, user }: { room: string; user: string }) => void;
   messages: IMessageType | undefined;
   roomMembers: string[];
 }
@@ -50,16 +50,18 @@ export const SocketProvider: React.FC<SocketProviderProps> = ({ children }) => {
   );
 
   const createRoom = useCallback(
-    (room: string, user: string) => {
+    ({ room, user }: { room: string; user: string }) => {
       if (socket) {
+        console.log(room, user, "room user");
         socket.emit("room:join", { room, user });
       }
     },
     [socket]
   );
 
-  const onRoomJoined = useCallback((user: string) => {
-    setRoomMembers((prev) => [...prev, user]);
+  const onRoomJoined = useCallback((user: {users :string[]}) => {
+    console.log("uer joined room", user);
+    setRoomMembers(user.users);
   }, []);
 
   const onMessageReceived = useCallback((msg: IMessageType) => {
