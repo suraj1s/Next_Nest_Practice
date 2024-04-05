@@ -49,8 +49,11 @@ const Page: React.FC = () => {
   // console.log(roomMembers.length, "roomMembers.length");
   return (
     <div className="h-screen p-10  ">
-      <div className=" container max-h-[90%] h-full border-4 border-gray-300 rounded-3xl px-[2.5%] pt-16 pb-20  ">
-        <div>
+      <div className=" relative container max-h-[90%] h-full border-4 border-gray-300 rounded-3xl px-[2.5%] pb-20  py-5 ">
+        <div className="flex flex-col gap-y-5 overflow-y-scroll h-full ">
+        <h1 className="text-4xl font-bold ">
+              {roomName} ({userName})
+            </h1>
           <div className="flex flex-col ">
             Other users:
             <div>
@@ -84,9 +87,7 @@ const Page: React.FC = () => {
           </div>
 
           <div className=" w-full pr-[10%]  font-bold text-2xl text-gray-300  gap-5 flex flex-col gap-y-6  ">
-            <h1>
-              {roomName} ({userName})
-            </h1>
+           
             {roomMembers?.length > 1 &&
               (receiver !== "" ||
                 (callReceive.offer !== "" && callReceive.caller !== "")) && (

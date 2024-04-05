@@ -45,14 +45,10 @@ class SocketService {
         this.handleCallStart(socket, data);
       });
 
-      socket.on("call:answer", (data: any) => {
+      socket.on("call:answer", (data: ICallAnswer) => {
         this.handleCallAnswer(socket, data);
       });
-
-      socket.on("call:reject", (data: any) => {
-        this.handleCallReject(socket, data);
-      });
-
+      
       socket.on("disconnect", () => {
         this.handleDisconnect(socket);
       });
@@ -93,23 +89,24 @@ class SocketService {
     socket.to(message.room).emit("server:message", message);
   }
 
-  private handleCallStart(socket: Socket, {offer , caller , receiver} : {offer: string , caller: string , receiver: string} ) {
+  private handleCallStart(socket: Socket, {offer , caller , receiver} : IStartCall ) {
     console.log("Starting call:", { "from": caller , "to": receiver , "with offer": offer });
     // socket.to(data.room).emit("call:receive", data);
     const socketId = this.userToSocket[receiver];
     this._io.to(socketId).emit("call:receive", {offer , caller });
   }
 
-  private handleCallAnswer(socket: Socket, data: any) {
-    console.log("Answering call:", data);
-    socket.to(data.room).emit("call:callResponse", data);
+  private handleCallAnswer(socket: Socket, {answer , status, caller}: ICallAnswer) {
+    console.log("Answering call:", answer , status, caller);
+    console.log("caller " , caller );
+    const receiver = this.socketToUser[socket.id];
+    const callerSocketId = this.userToSocket[caller];
+    this._io.to(callerSocketId).emit("call:answer", {answer , status, caller : receiver});
   }
 
-  private handleCallReject(socket: Socket, data: any) {
-    console.log("Rejecting call:", data);
-    socket.to(data.room).emit("call:callResponse", data);
-  }
+  private handelRoomLeave(socket: Socket, room: string) {
 
+  }
   private handleDisconnect(socket: Socket) {
     const disconnectedUser = this.socketToUser[socket.id];
     console.log(`User ${disconnectedUser} disconnected`);
@@ -120,11 +117,7 @@ class SocketService {
         this.usersInRooms[room] = this.usersInRooms[room].filter(
           (user: string) => user !== disconnectedUser
         );
-        const roomUsers = this.usersInRooms[room];
-        const roomUsersName = roomUsers.map(
-          (user: string) => this.socketToUser[user]
-        );
-        socket.to(room).emit("room:userLeft", { users: roomUsersName });
+        socket.to(room).emit("room:userLeft", { users: disconnectedUser });
       }
     }
   }

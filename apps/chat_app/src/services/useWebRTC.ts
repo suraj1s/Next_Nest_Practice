@@ -1,6 +1,6 @@
 class WebRTCService {
   private static instance: WebRTCService;
-  private peer: RTCPeerConnection | null = null;
+  public peer: RTCPeerConnection | null = null;
 
   // Private constructor to prevent instantiation from outside the class
   private constructor() {

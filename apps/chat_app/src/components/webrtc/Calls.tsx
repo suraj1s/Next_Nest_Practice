@@ -15,7 +15,8 @@ const Calls = ({ caller, receiver }: ICallsProps) => {
   const stremeRef = useRef<any>(null);
   const otherPeerStremeRef = useRef<any>(null);
   const [isClient, setIsClient] = useState<boolean>(false);
-  const { startCall, callReceive } = useSocket();
+  const { startCall, answerCall, callReceive, callAnswerResponse } =
+    useSocket();
 
   useEffect(() => {
     if (userMediaIntance) {
@@ -64,13 +65,39 @@ const Calls = ({ caller, receiver }: ICallsProps) => {
         const offer = await webRTCServiceInstance.createOffer();
         const stringifiedOffer = JSON.stringify(offer);
         startCall({ offer: stringifiedOffer, caller, receiver });
-        console.log("offer", JSON.stringify(offer));
+        // console.log("offer", JSON.stringify(offer));
       } catch (error) {
         console.error("Error creating offer:", error);
       }
     }
   };
-console.log(callReceive, "callReceive")
+
+  useEffect(() => {
+    if (
+      callAnswerResponse.answer !== "" &&
+      callAnswerResponse.status === true &&
+      callAnswerResponse.caller === receiver
+    ) {
+      webRTCServiceInstance.setAnswer(JSON.parse(callAnswerResponse.answer));
+    }
+  }, [callAnswerResponse]);
+
+  // set stram after connection
+  // const sendStreams = useCallback(() => {
+  //   for (const track of myStream.getTracks()) {
+  //     peer.peer.addTrack(track, myStream);
+  //   }
+  // }, [myStream]);
+
+  // add remote stream for rendering strem
+  // useEffect(() => {
+  //   peer.peer.addEventListener("track", async (ev) => {
+  //     const remoteStream = ev.streams;
+  //     console.log("GOT TRACKS!!");
+  //     setRemoteStream(remoteStream[0]);
+  //   });
+  // }, []);
+  // console.log(callReceive, "callReceive");
   return (
     <div className="flex flex-col gap-5">
       <div className="flex gap-x-4 text-sm  ">
@@ -109,8 +136,15 @@ console.log(callReceive, "callReceive")
             <div className="text-xs flex gap-4 py-3">
               <button
                 onClick={async () => {
-                  // const offer = JSON.parse(callReceive.offer);
-                  // await webRTCServiceInstance.setAnswer(offer);
+                  const offer = JSON.parse(callReceive.offer);
+                  const answer =
+                    await webRTCServiceInstance.createAnswer(offer);
+                  const stringifiedAnswer = JSON.stringify(answer);
+                  answerCall({
+                    answer: stringifiedAnswer,
+                    status: true,
+                    caller: callReceive.caller,
+                  });
                   console.log("call accepted");
                 }}
                 className="border border-slate-300 rounded-md  px-3 py-1 hover:bg-slate-700 hover:text-blue-400 "
@@ -118,7 +152,12 @@ console.log(callReceive, "callReceive")
                 Accept Call
               </button>
               <button
-                onClick={() => {
+                onClick={async () => {
+                  answerCall({
+                    answer: "",
+                    status: false,
+                    caller: callReceive.caller,
+                  });
                   console.log("call rejected");
                 }}
                 className="border border-slate-300 rounded-md  px-3 py-1 hover:bg-slate-700 hover:text-blue-400 "
@@ -144,6 +183,20 @@ console.log(callReceive, "callReceive")
             className={`${streamTitle === "Video" ? "block" : "hidden"}`}
           />
         </div> */}
+      </div>
+      <div>
+        {callAnswerResponse.answer !== "" && (
+          <div>
+            <h1>
+              {receiver + " "} responded {callAnswerResponse.status} ,{" "}
+            </h1>
+            <p>{callAnswerResponse.caller} callAnswerResponse responce form </p>
+
+            <p className="p-2 bg-slate-700 rounded-sm m-4">
+              {JSON.stringify(callAnswerResponse)}
+            </p>
+          </div>
+        )}
       </div>
       <div>
         <h1>{streamTitle}</h1>
