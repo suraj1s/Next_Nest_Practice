@@ -18,12 +18,14 @@ export interface IMessageType {
 interface IStartCall {
   offer: string;
   caller: string;
+  callType : "AUDIO" | "VIDEO"
   receiver: string;
 }
 
 interface ICallReceive {
   caller: string;
   offer: string;
+  callType : "AUDIO" | "VIDEO"
 }
 interface ICallAnswer {
   answer: string;
@@ -34,7 +36,7 @@ interface ICallAnswer {
 interface ISocketContext {
   sendMessage: (msg: IMessageType) => void;
   createRoom: ({ room, user }: { room: string; user: string }) => void;
-  startCall: ({ offer, caller, receiver }: IStartCall) => void;
+  startCall: ({ offer, caller, receiver, callType }: IStartCall) => void;
   answerCall: ({ status, answer }: ICallAnswer) => void;
   messages: IMessageType | undefined;
   roomMembers: string[];
@@ -59,9 +61,10 @@ export const SocketProvider: React.FC<SocketProviderProps> = ({ children }) => {
   const [socket, setSocket] = useState<Socket | undefined>();
   const [messages, setMessages] = useState<IMessageType | undefined>();
   const [roomMembers, setRoomMembers] = useState<string[]>([]);
-  const [callReceive, setCallReceive] = useState({
+  const [callReceive, setCallReceive] = useState<ICallReceive>({
     caller: "",
     offer: "",
+    callType : "AUDIO"
   });
   const [callAnswer, setCallAnswer] = useState<ICallAnswer>({
     status: false,
@@ -99,13 +102,10 @@ export const SocketProvider: React.FC<SocketProviderProps> = ({ children }) => {
       offer,
       caller,
       receiver,
-    }: {
-      offer: string;
-      caller: string;
-      receiver: string;
-    }) => {
+      callType,
+    }: IStartCall) => {
       if (socket) {
-        socket.emit("call:start", { offer, caller, receiver });
+        socket.emit("call:start", { offer, caller, receiver, callType });
       }
     },
     [socket]
@@ -134,9 +134,9 @@ export const SocketProvider: React.FC<SocketProviderProps> = ({ children }) => {
   // }, []);
 
   // for Reviever
-  const onCallReceive = useCallback(({ offer, caller }: ICallReceive) => {
-    console.log("call received ", { caller, offer });
-    setCallReceive({ caller, offer });
+  const onCallReceive = useCallback(({ offer, caller, callType }: ICallReceive) => {
+    console.log("call received ", { caller, offer , callType });
+    setCallReceive({ caller, offer, callType });
   }, []);
 
   // for Caller
