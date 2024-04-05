@@ -93,9 +93,11 @@ class SocketService {
     socket.to(message.room).emit("server:message", message);
   }
 
-  private handleCallStart(socket: Socket, data: any) {
-    console.log("Starting call:", data);
-    socket.to(data.room).emit("call:receive", data);
+  private handleCallStart(socket: Socket, {offer , caller , receiver} : {offer: string , caller: string , receiver: string} ) {
+    console.log("Starting call:", { "from": caller , "to": receiver , "with offer": offer });
+    // socket.to(data.room).emit("call:receive", data);
+    const socketId = this.userToSocket[receiver];
+    this._io.to(socketId).emit("call:receive", {offer , caller });
   }
 
   private handleCallAnswer(socket: Socket, data: any) {

@@ -17,7 +17,7 @@ export default function Home() {
     router.push("/chat");
   };
   return (
-    <div className=" font-semibold p-40 ">
+    <div className=" font-semibold p-20 ">
       {/* <h1>Chat App</h1>
       <p>Chat with your friends</p> */}
       <form onSubmit={handelsubmit} className="flex flex-col gap-y-4 text-lg ">
@@ -27,7 +27,7 @@ export default function Home() {
             type="text"
             required={true}
             id="room_name"
-            className="border-2 border-gray-400 w-[20%]  rounded-lg h-10 bg-slate-900 text-gray-200 font-medium  outline-slate-800 px-3"
+            className="border-2 border-gray-400  rounded-lg h-10 bg-slate-900 text-gray-200 font-medium  outline-slate-800 px-3"
           />
         </div>
         <div className="flex flex-col gap-y-2">
@@ -36,7 +36,7 @@ export default function Home() {
             type="text"
             required={true}
             id="user_name"
-            className="border-2 border-gray-400 w-[20%] rounded-lg h-10 bg-slate-900 text-gray-200 font-medium  outline-slate-800 px-3"
+            className="border-2 border-gray-400 rounded-lg h-10 bg-slate-900 text-gray-200 font-medium  outline-slate-800 px-3"
           />
         </div>
         <button

@@ -15,12 +15,23 @@ export interface IMessageType {
   room: string;
   user: string;
 }
+interface IStartCall {
+  offer: string;
+  caller: string;
+  receiver: string;
+}
 
+interface ICallReceive {
+  caller: string;
+  offer: string;
+}
 interface ISocketContext {
   sendMessage: (msg: IMessageType) => void;
   createRoom: ({ room, user }: { room: string; user: string }) => void;
+  startCall: ({ offer, caller, receiver }: IStartCall) => void;
   messages: IMessageType | undefined;
   roomMembers: string[];
+  callReceive: ICallReceive;
 }
 
 interface SocketProviderProps {
@@ -39,6 +50,10 @@ export const SocketProvider: React.FC<SocketProviderProps> = ({ children }) => {
   const [socket, setSocket] = useState<Socket | undefined>();
   const [messages, setMessages] = useState<IMessageType | undefined>();
   const [roomMembers, setRoomMembers] = useState<string[]>([]);
+  const [callReceive, setCallReceive] = useState({
+    caller: "",
+    offer: "",
+  });
 
   const sendMessage = useCallback(
     (msg: IMessageType) => {
@@ -59,7 +74,24 @@ export const SocketProvider: React.FC<SocketProviderProps> = ({ children }) => {
     [socket]
   );
 
-  const onRoomJoined = useCallback((user: {users :string[]}) => {
+  const startCall = useCallback(
+    ({
+      offer,
+      caller,
+      receiver,
+    }: {
+      offer: string;
+      caller: string;
+      receiver: string;
+    }) => {
+      if (socket) {
+        socket.emit("call:start", { offer, caller, receiver });
+      }
+    },
+    [socket]
+  );
+
+  const onRoomJoined = useCallback((user: { users: string[] }) => {
     console.log("uer joined room", user);
     setRoomMembers(user.users);
   }, []);
@@ -68,21 +100,66 @@ export const SocketProvider: React.FC<SocketProviderProps> = ({ children }) => {
     setMessages(msg);
   }, []);
 
+  // // for Caller
+  // const onCallStart = useCallback((data: any) => {
+  //   console.log("call start", data);
+  // }, []);
+
+  // for Reviever
+  const onCallReceive = useCallback(({ offer, caller }: ICallReceive) => {
+    console.log("call received ", { caller, offer });
+    setCallReceive({ caller, offer });
+  }, []);
+
+  // for Caller
+  const onCallAnswer = useCallback((data: any) => {
+    console.log("call answer", data);
+  }, []);
+
+  // for Caller
+  const onCallReject = useCallback((data: any) => {
+    console.log("call reject", data);
+  }, []);
+
+  // const Caller & Reciever
+  const onCallEnd = useCallback((data: any) => {
+    console.log("call end", data);
+  }, []);
+
   useEffect(() => {
     const _socket = io("http://localhost:8000");
     _socket.on("server:message", onMessageReceived);
     _socket.on("room:userJoined", onRoomJoined);
+    // _socket.on("call:start", onCallStart);
+    _socket.on("call:receive", onCallReceive);
+    _socket.on("call:answer", onCallAnswer);
+    _socket.on("call:reject", onCallReject);
+    _socket.on("call:end", onCallEnd);
+
     setSocket(_socket);
+
     return () => {
       _socket.off("server:message", onMessageReceived);
       _socket.off("room:userJoined", onRoomJoined);
+      // _socket.off("call:start", onCallStart);
+      _socket.off("call:receive", onCallReceive);
+      _socket.off("call:answer", onCallAnswer);
+      _socket.off("call:reject", onCallReject);
+      _socket.off("call:end", onCallEnd);
       _socket.disconnect();
     };
   }, []);
 
   const socketValue = useMemo(
-    () => ({ sendMessage, messages, roomMembers, createRoom }),
-    [sendMessage, messages, roomMembers, createRoom]
+    () => ({
+      sendMessage,
+      createRoom,
+      startCall,
+      messages,
+      roomMembers,
+      callReceive,
+    }),
+    [sendMessage, createRoom, startCall, messages, roomMembers, callReceive]
   );
 
   return (
