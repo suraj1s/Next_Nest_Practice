@@ -32,10 +32,12 @@ interface Room {
   interface IStartCall {
     offer: string;
     caller: string;
+    callType : "AUDIO" | "VIDEO"
     receiver: string;
   }
   
   interface ICallReceive {
     caller: string;
     offer: string;
+    callType : "AUDIO" | "VIDEO"
   }
