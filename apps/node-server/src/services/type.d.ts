@@ -21,3 +21,23 @@ interface Room {
   interface SocketToUserMap {
     [socket: string]: string;
   }
+
+  interface ICallAnswer {
+    answer: string;
+    status: boolean;
+    caller: string;
+  }
+
+
+  interface IStartCall {
+    offer: string;
+    caller: string;
+    callType : "AUDIO" | "VIDEO"
+    receiver: string;
+  }
+  
+  interface ICallReceive {
+    caller: string;
+    offer: string;
+    callType : "AUDIO" | "VIDEO"
+  }

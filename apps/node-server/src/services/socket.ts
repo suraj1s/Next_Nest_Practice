@@ -33,10 +33,6 @@ class SocketService {
         }
       );
 
-      socket.on("getUsersInRoom", (room: string) => {
-        this.handleGetUsersInRoom(socket, room);
-      });
-
       socket.on("client:message", ({ message }: { message: any }) => {
         this.handleClientMessage(socket, message);
       });
@@ -45,14 +41,18 @@ class SocketService {
         this.handleCallStart(socket, data);
       });
 
-      socket.on("call:answer", (data: any) => {
+      socket.on("call:answer", (data: ICallAnswer) => {
         this.handleCallAnswer(socket, data);
       });
 
-      socket.on("call:reject", (data: any) => {
-        this.handleCallReject(socket, data);
+      socket.on( "nego:start", (data: any) => {
+        this.handleNegotiationStart(socket, data);
       });
 
+      socket.on( "nego:answer", (data: any) => {
+        this.handleNegotiationAnswer(socket, data);
+      });
+      
       socket.on("disconnect", () => {
         this.handleDisconnect(socket);
       });
@@ -81,31 +81,38 @@ class SocketService {
 
   }
 
-  private handleGetUsersInRoom(socket: Socket, room: string) {
-    console.log(`Request for users in room ${room}`);
-    const users = this.usersInRooms[room] || [];
-    socket.emit("usersInRoom", users);
-  }
-
   private handleClientMessage(socket: Socket, message: any) {
     console.log("Received message:", message);
     // Broadcast message to everyone in the room except the sender
     socket.to(message.room).emit("server:message", message);
   }
 
-  private handleCallStart(socket: Socket, data: any) {
-    console.log("Starting call:", data);
-    socket.to(data.room).emit("call:receive", data);
+  private handleCallStart(socket: Socket, {offer , caller , receiver, callType} : IStartCall ) {
+    console.log("Starting call:", { "from": caller , "to": receiver , "with offer": offer, "callType": callType });
+    // socket.to(data.room).emit("call:receive", data);
+    const socketId = this.userToSocket[receiver];
+    this._io.to(socketId).emit("call:receive", {offer , caller, callType });
   }
 
-  private handleCallAnswer(socket: Socket, data: any) {
-    console.log("Answering call:", data);
-    socket.to(data.room).emit("call:callResponse", data);
+  private handleCallAnswer(socket: Socket, {answer , status, caller}: ICallAnswer) {
+    console.log("Answering call:", answer , status, caller);
+    console.log("caller " , caller );
+    const receiver = this.socketToUser[socket.id];
+    const callerSocketId = this.userToSocket[caller];
+    this._io.to(callerSocketId).emit("call:answer", {answer , status, caller : receiver});
   }
 
-  private handleCallReject(socket: Socket, data: any) {
-    console.log("Rejecting call:", data);
-    socket.to(data.room).emit("call:callResponse", data);
+  private handleNegotiationStart(socket: Socket, {offer , to}: {offer: string , to: string}) {
+    console.log("Negotiating call:", offer , to);
+    const socketId = this.userToSocket[to];
+    const caller = this.socketToUser[socket.id];
+    this._io.to(socketId).emit("nego:receive", {offer, from: caller});
+  }
+
+  private handleNegotiationAnswer(socket: Socket, {answer , to}: {answer: string , to: string}) {
+    console.log("Negotiating answer:", answer , to, "from" , this.socketToUser[socket.id]);
+    const socketId = this.userToSocket[to];
+    this._io.to(socketId).emit("nego:answer", {answer});
   }
 
   private handleDisconnect(socket: Socket) {
@@ -118,11 +125,7 @@ class SocketService {
         this.usersInRooms[room] = this.usersInRooms[room].filter(
           (user: string) => user !== disconnectedUser
         );
-        const roomUsers = this.usersInRooms[room];
-        const roomUsersName = roomUsers.map(
-          (user: string) => this.socketToUser[user]
-        );
-        socket.to(room).emit("room:userLeft", { users: roomUsersName });
+        socket.to(room).emit("room:userLeft", { users: disconnectedUser });
       }
     }
   }

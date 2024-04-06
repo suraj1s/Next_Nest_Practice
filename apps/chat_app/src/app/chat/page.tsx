@@ -1,13 +1,17 @@
 "use client";
+// import Calls from "@/components/webrtc/Calls";
+// import CallsTest from "@/components/webrtc/CallsText";
+import NewCall from "@/components/webrtc/NewCall";
 import { IMessageType, useSocket } from "@/context/socketProvider";
 import { useRouter } from "next/navigation";
 import React, { useEffect, useRef, useState } from "react";
 
 const Page: React.FC = () => {
   const scrollRef = useRef<HTMLDivElement>(null);
-  const { sendMessage, messages, roomMembers } = useSocket();
+  const { sendMessage, messages, roomMembers, callReceive } = useSocket();
   const [userName, setUserName] = useState("");
   const [roomName, setRoomName] = useState("");
+  const [receiver, setReceiver] = useState("");
   const [allMessages, setAllMessages] = useState<IMessageType[]>([]);
 
   useEffect(() => {
@@ -44,35 +48,55 @@ const Page: React.FC = () => {
     e.target[0].value = "";
   };
 
-  console.log(roomMembers, "roomMembers");
+  // console.log(roomMembers.length, "roomMembers.length");
   return (
-    <div className="h-screen  ">
-      <div>Contacts</div>
-      <div className="relative container max-h-[90%] h-full border-4 border-gray-300 rounded-3xl px-[2.5%] pt-16 pb-20 max-w-[55%] ">
-        <div>
-          <div className="absolute top-5 w-full pr-[10%]  font-bold text-2xl text-gray-300  flex-col sm:flex-row gap-5 flex justify-between  ">
-            <h1>
+    <div className="h-screen p-10  ">
+      <div className=" relative container max-h-[90%] h-full border-4 border-gray-300 rounded-3xl px-[2.5%] pb-20  py-5 ">
+        <div className="flex flex-col gap-y-5 overflow-y-scroll h-full ">
+        <h1 className="text-4xl font-bold ">
               {roomName} ({userName})
             </h1>
-            {/* <Calls /> */}
-          </div>
-          <div>
-            other users
-            <div className="flex flex-wrap gap-5 ">
-            {roomMembers.length > 0 ? (
-              roomMembers.map(
-                (user, id) =>
-                  user !== userName && (
-                    <div key={id} className="bg-gray-800 p-2 rounded-lg w-fit">
-                      <p className="text-gray-200 font-medium">{user}</p>
-                    </div>
-                  )
-              )
-            ) : (
-              <p>No one in Room</p>
-            )}
-
+          <div className="flex flex-col ">
+            Other users:
+            <div>
+              {roomMembers?.length > 1 ? (
+                <div className="flex items-center text-2xl flex-wrap gap-3">
+                  <p>select user to call : </p>
+                  <select
+                    defaultValue={""}
+                    onChange={(e) => setReceiver(e.currentTarget.value)}
+                    name="receiver"
+                    id="receiver"
+                    className="bg-slate-800 text-slate-300  text-2xl px-5 py-1 rounded-xl "
+                  >
+                    <option className="!text-[10px]" value="">
+                      Select One
+                    </option>
+                    {roomMembers?.map(
+                      (user, id) =>
+                        user !== userName && (
+                          <option key={id} value={user}>
+                            {user}
+                          </option>
+                        )
+                    )}
+                  </select>
+                </div>
+              ) : (
+                <p>No one in Room</p>
+              )}
             </div>
+          </div>
+
+          <div className=" w-full pr-[10%]  font-bold text-2xl text-gray-300  gap-5 flex flex-col gap-y-6  ">
+           
+            {roomMembers?.length > 1 &&
+              (receiver !== "" ||
+                (callReceive.offer !== "" && callReceive.caller !== "")) && (
+                // <Calls caller={userName} receiver={receiver} />
+                // <CallsTest caller={userName} receiver={receiver} />
+                <NewCall caller={userName} receiver={receiver} />
+              )}
           </div>
         </div>
 
