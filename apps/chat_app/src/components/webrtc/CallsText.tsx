@@ -30,6 +30,16 @@ const CallsTest = ({ caller, receiver }: ICallsProps) => {
     "Not Answered" | "Answered" | "Rejected"
   >("Not Answered");
 
+  // state for local localdescription and remote description after call start and answer , localdescription afet negotiation and remote description after nego
+  const [localDescription, setLocalDescription] =
+    useState<RTCSessionDescriptionInit | null>(null);
+  const [remoteDescription, setRemoteDescription] =
+    useState<RTCSessionDescription | null>(null);
+  const [localNegoDescription, setLocalNegoDescription] =
+    useState<RTCSessionDescriptionInit | null>(null);
+  const [remoteNegoDescription, setRemoteNegoDescription] =
+    useState<RTCSessionDescription | null>(null);
+
   const handelCallStart = async ({
     callType,
   }: {
@@ -43,6 +53,7 @@ const CallsTest = ({ caller, receiver }: ICallsProps) => {
         });
         setLocalStream(localStream);
         const offer = await webRTCServiceInstance.createOffer();
+        setLocalDescription(offer);
         const stringifiedOffer = JSON.stringify(offer);
         startCall({ offer: stringifiedOffer, caller, receiver, callType });
       } catch (error) {
@@ -59,7 +70,9 @@ const CallsTest = ({ caller, receiver }: ICallsProps) => {
     setLocalStream(localStream);
     // console.log(callReceive.offer, "callReceive.offer");
     const offer = JSON.parse(callReceive.offer);
+    setRemoteDescription(offer);
     const answer = await webRTCServiceInstance.createAnswer(offer);
+    setLocalDescription(answer);
     const stringifiedAnswer = JSON.stringify(answer);
     // console.log(stringifiedAnswer, "stringifiedAnswer");
     answerCall({
@@ -78,18 +91,6 @@ const CallsTest = ({ caller, receiver }: ICallsProps) => {
     }
   }, [localStream]);
 
-  // set remote strem
-  useEffect(() => {
-    console.log(caller, callAnswerResponse, "callAnswerResponse");
-    if (webRTCServiceInstance.peer) {
-      webRTCServiceInstance.peer.addEventListener("track", async (ev) => {
-        const remoteStream = ev.streams;
-        console.log(remoteStream, "remoteStream");
-        setRemoteStream(remoteStream[0]);
-      });
-    }
-  }, []);
-
   // set answer
   useEffect(() => {
     if (
@@ -97,11 +98,12 @@ const CallsTest = ({ caller, receiver }: ICallsProps) => {
       callAnswerResponse.answer !== ""
     ) {
       const answer = JSON.parse(callAnswerResponse.answer);
+      setRemoteDescription(answer);
       webRTCServiceInstance.setAnswer(answer);
       console.log("call accepted from other peer", receiver);
       sendStreams();
     }
-  }, [callAnswerResponse]);
+  }, [callAnswerResponse, sendStreams]);
 
   useEffect(() => {
     stremeRef.current.srcObject = localStream;
@@ -117,9 +119,9 @@ const CallsTest = ({ caller, receiver }: ICallsProps) => {
   const handelNegotiationNeeded = async () => {
     console.log("Negotiation needed", caller);
     const offer = await webRTCServiceInstance.createOffer();
-    console.log("first offer", offer);
+    setLocalNegoDescription(offer);
     const stringifiedOffer = JSON.stringify(offer);
-    console.log(stringifiedOffer, "stringifiedOffer");
+    // console.log(stringifiedOffer, "stringifiedOffer");
     startNegotiation({ offer: stringifiedOffer, to: receiver });
   };
 
@@ -144,7 +146,9 @@ const CallsTest = ({ caller, receiver }: ICallsProps) => {
     console.log(negoReceive, "negoReceive ... inside useCallback");
     if (negoReceive.offer !== "") {
       const offer = JSON.parse(negoReceive.offer);
+      setRemoteNegoDescription(offer);
       const answer = await webRTCServiceInstance.createAnswer(offer);
+      setLocalNegoDescription(answer);
       const stringifiedAnswer = JSON.stringify(answer);
       console.log(stringifiedAnswer, "stringifiedAnswer answer nego ...");
       answerNego({ answer: stringifiedAnswer, to: negoReceive.from });
@@ -157,17 +161,80 @@ const CallsTest = ({ caller, receiver }: ICallsProps) => {
 
   console.log(negoReceive, "negoReceive ...");
 
-  // negociation answer received
+    // negociation answer received
+    const setNegoFinalAnswer = useCallback(async () => {
+      if (negoAnswerResponse.answer !== "") {
+        const answer = JSON.parse(negoAnswerResponse.answer);
+        setRemoteNegoDescription(answer);
+        await webRTCServiceInstance.setAnswer(answer);
+        console.log(answer, "negoAnswerResponse answer ...");
+      }
+    }, [negoAnswerResponse]);
+  
+    useEffect(() => {
+      setNegoFinalAnswer();
+    }, [negoAnswerResponse]);
+
+
+  // set remote strem
   useEffect(() => {
-    if (negoAnswerResponse.answer !== "") {
-      const answer = JSON.parse(negoAnswerResponse.answer);
-      console.log(answer, "negoAnswerResponse answer ...");
-      webRTCServiceInstance.setAnswer(answer);
+    console.log(caller, callAnswerResponse, "callAnswerResponse");
+    if (webRTCServiceInstance.peer) {
+      webRTCServiceInstance.peer.addEventListener("track", async (ev) => {
+        const remoteStream = ev.streams;
+        console.log(remoteStream, "remoteStream");
+        setRemoteStream(remoteStream[0]);
+      });
     }
-  }, [negoAnswerResponse]);
+  }, []);
+
+
 
   return (
     <div className="flex flex-col gap-5">
+      {/* <div className="text-sm font-normal gap-4 flex flex-col ">
+        {localDescription && (
+          <p className="border border-slate-300 rounded-md p-3">localDescription :
+          <button  className="border border-slate-300 rounded-md  px-3 py-1 hover:bg-slate-700 hover:text-blue-400 "
+          onClick={() => {
+            webRTCServiceInstance.peer?.setLocalDescription(new RTCSessionDescription(localDescription));
+          }}
+          >
+            set
+          </button>
+          </p>
+        )}
+        {remoteDescription && (
+          <p className="border border-slate-300 rounded-md p-3">remoteDescription :  <button  className="border border-slate-300 rounded-md  px-3 py-1 hover:bg-slate-700 hover:text-blue-400 "
+          onClick={() => {
+            webRTCServiceInstance.peer?.setRemoteDescription(new RTCSessionDescription(remoteDescription));
+          }}
+          >
+            set
+          </button></p>
+        )}
+        {localNegoDescription && (
+          <p className="border border-slate-300 rounded-md p-3">localNegoDescription : 
+          <button  className="border border-slate-300 rounded-md  px-3 py-1 hover:bg-slate-700 hover:text-blue-400 "
+          onClick={() => {
+            webRTCServiceInstance.peer?.setLocalDescription(new RTCSessionDescription(localNegoDescription));
+          }}
+          >
+            set
+          </button></p>
+        )}
+        {remoteNegoDescription && (
+          <p className="border border-slate-300 rounded-md p-3">remoteNegoDescription : 
+           <button  className="border border-slate-300 rounded-md  px-3 py-1 hover:bg-slate-700 hover:text-blue-400 "
+          onClick={() => {
+            webRTCServiceInstance.peer?.setRemoteDescription(new RTCSessionDescription(remoteNegoDescription));
+          }}
+          >
+            set
+          </button>
+          </p>
+        )}
+      </div> */}
       {
         <div className="flex gap-x-4 text-sm  ">
           <button
@@ -210,7 +277,14 @@ const CallsTest = ({ caller, receiver }: ICallsProps) => {
           </div>
         )}
       </div>
-      {/* {localStream && <button onClick={sendStreams}>Send Stream</button>} */}
+      {localStream && (
+        <button
+          className="border border-slate-300 rounded-md  px-3 py-1 hover:bg-slate-700 hover:text-blue-400 "
+          onClick={sendStreams}
+        >
+          Send Stream
+        </button>
+      )}
       <div className="flex justify-between gap-10">
         <div>
           <p>Peer video</p>
@@ -231,151 +305,3 @@ const CallsTest = ({ caller, receiver }: ICallsProps) => {
 };
 
 export default CallsTest;
-
-// "use client"
-// import React, { useEffect, useCallback, useState } from "react";
-// import ReactPlayer from "react-player";
-// import peer from "../service/peer";
-// import { useSocket } from "../context/SocketProvider";
-
-// const CallsTest = () => {
-//   const socket = useSocket();
-//   const [remoteSocketId, setRemoteSocketId] = useState(null);
-//   const [myStream, setMyStream] = useState();
-//   const [remoteStream, setRemoteStream] = useState();
-
-//   const handleUserJoined = useCallback(({ email, id }) => {
-//     console.log(`Email ${email} joined room`);
-//     setRemoteSocketId(id);
-//   }, []);
-
-//   const handleCallUser = useCallback(async () => {
-//     const stream = await navigator.mediaDevices.getUserMedia({
-//       audio: true,
-//       video: true,
-//     });
-//     const offer = await peer.getOffer();
-//     socket.emit("user:call", { to: remoteSocketId, offer });
-//     setMyStream(stream);
-//   }, [remoteSocketId, socket]);
-
-//   const handleIncommingCall = useCallback(
-//     async ({ from, offer }) => {
-//       setRemoteSocketId(from);
-//       const stream = await navigator.mediaDevices.getUserMedia({
-//         audio: true,
-//         video: true,
-//       });
-//       setMyStream(stream);
-//       console.log(`Incoming Call`, from, offer);
-//       const ans = await peer.getAnswer(offer);
-//       socket.emit("call:accepted", { to: from, ans });
-//     },
-//     [socket]
-//   );
-
-//   const sendStreams = useCallback(() => {
-//     for (const track of myStream.getTracks()) {
-//       peer.peer.addTrack(track, myStream);
-//     }
-//   }, [myStream]);
-
-//   const handleCallAccepted = useCallback(
-//     ({ from, ans }) => {
-//       peer.setLocalDescription(ans);
-//       console.log("Call Accepted!");
-//       sendStreams();
-//     },
-//     [sendStreams]
-//   );
-
-//   const handleNegoNeeded = useCallback(async () => {
-//     const offer = await peer.getOffer();
-//     socket.emit("peer:nego:needed", { offer, to: remoteSocketId });
-//   }, [remoteSocketId, socket]);
-
-//   useEffect(() => {
-//     peer.peer.addEventListener("negotiationneeded", handleNegoNeeded);
-//     return () => {
-//       peer.peer.removeEventListener("negotiationneeded", handleNegoNeeded);
-//     };
-//   }, [handleNegoNeeded]);
-
-//   const handleNegoNeedIncomming = useCallback(
-//     async ({ from, offer }) => {
-//       const ans = await peer.getAnswer(offer);
-//       socket.emit("peer:nego:done", { to: from, ans });
-//     },
-//     [socket]
-//   );
-
-//   const handleNegoNeedFinal = useCallback(async ({ ans }) => {
-//     await peer.setLocalDescription(ans);
-//   }, []);
-
-//   useEffect(() => {
-//     peer.peer.addEventListener("track", async (ev) => {
-//       const remoteStream = ev.streams;
-//       console.log("GOT TRACKS!!");
-//       setRemoteStream(remoteStream[0]);
-//     });
-//   }, []);
-
-//   useEffect(() => {
-//     socket.on("user:joined", handleUserJoined);
-//     socket.on("incomming:call", handleIncommingCall);
-//     socket.on("call:accepted", handleCallAccepted);
-//     socket.on("peer:nego:needed", handleNegoNeedIncomming);
-//     socket.on("peer:nego:final", handleNegoNeedFinal);
-
-//     return () => {
-//       socket.off("user:joined", handleUserJoined);
-//       socket.off("incomming:call", handleIncommingCall);
-//       socket.off("call:accepted", handleCallAccepted);
-//       socket.off("peer:nego:needed", handleNegoNeedIncomming);
-//       socket.off("peer:nego:final", handleNegoNeedFinal);
-//     };
-//   }, [
-//     socket,
-//     handleUserJoined,
-//     handleIncommingCall,
-//     handleCallAccepted,
-//     handleNegoNeedIncomming,
-//     handleNegoNeedFinal,
-//   ]);
-
-//   return (
-//     <div>
-//       <h1>Room Page</h1>
-//       <h4>{remoteSocketId ? "Connected" : "No one in room"}</h4>
-//       {myStream && <button onClick={sendStreams}>Send Stream</button>}
-//       {remoteSocketId && <button onClick={handleCallUser}>CALL</button>}
-//       {myStream && (
-//         <>
-//           <h1>My Stream</h1>
-//           <ReactPlayer
-//             playing
-//             muted
-//             height="100px"
-//             width="200px"
-//             url={myStream}
-//           />
-//         </>
-//       )}
-//       {remoteStream && (
-//         <>
-//           <h1>Remote Stream</h1>
-//           <ReactPlayer
-//             playing
-//             muted
-//             height="100px"
-//             width="200px"
-//             url={remoteStream}
-//           />
-//         </>
-//       )}
-//     </div>
-//   );
-// };
-
-// export default CallsTest;
