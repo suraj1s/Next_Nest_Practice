@@ -33,13 +33,6 @@ class SocketService {
         }
       );
 
-<<<<<<< HEAD
-=======
-      socket.on("getUsersInRoom", (room: string) => {
-        this.handleGetUsersInRoom(socket, room);
-      });
-
->>>>>>> 87cbf02c87bdf4fb4a1edba1b391d95accd18784
       socket.on("client:message", ({ message }: { message: any }) => {
         this.handleClientMessage(socket, message);
       });
@@ -48,7 +41,6 @@ class SocketService {
         this.handleCallStart(socket, data);
       });
 
-<<<<<<< HEAD
       socket.on("call:answer", (data: ICallAnswer) => {
         this.handleCallAnswer(socket, data);
       });
@@ -61,16 +53,6 @@ class SocketService {
         this.handleNegotiationAnswer(socket, data);
       });
       
-=======
-      socket.on("call:answer", (data: any) => {
-        this.handleCallAnswer(socket, data);
-      });
-
-      socket.on("call:reject", (data: any) => {
-        this.handleCallReject(socket, data);
-      });
-
->>>>>>> 87cbf02c87bdf4fb4a1edba1b391d95accd18784
       socket.on("disconnect", () => {
         this.handleDisconnect(socket);
       });
