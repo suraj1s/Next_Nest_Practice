@@ -33,10 +33,6 @@ class SocketService {
         }
       );
 
-      socket.on("getUsersInRoom", (room: string) => {
-        this.handleGetUsersInRoom(socket, room);
-      });
-
       socket.on("client:message", ({ message }: { message: any }) => {
         this.handleClientMessage(socket, message);
       });
@@ -47,6 +43,14 @@ class SocketService {
 
       socket.on("call:answer", (data: ICallAnswer) => {
         this.handleCallAnswer(socket, data);
+      });
+
+      socket.on( "nego:start", (data: any) => {
+        this.handleNegotiationStart(socket, data);
+      });
+
+      socket.on( "nego:answer", (data: any) => {
+        this.handleNegotiationAnswer(socket, data);
       });
       
       socket.on("disconnect", () => {
@@ -77,12 +81,6 @@ class SocketService {
 
   }
 
-  private handleGetUsersInRoom(socket: Socket, room: string) {
-    console.log(`Request for users in room ${room}`);
-    const users = this.usersInRooms[room] || [];
-    socket.emit("usersInRoom", users);
-  }
-
   private handleClientMessage(socket: Socket, message: any) {
     console.log("Received message:", message);
     // Broadcast message to everyone in the room except the sender
@@ -104,9 +102,19 @@ class SocketService {
     this._io.to(callerSocketId).emit("call:answer", {answer , status, caller : receiver});
   }
 
-  private handelRoomLeave(socket: Socket, room: string) {
-
+  private handleNegotiationStart(socket: Socket, {offer , to}: {offer: string , to: string}) {
+    console.log("Negotiating call:", offer , to);
+    const socketId = this.userToSocket[to];
+    const caller = this.socketToUser[socket.id];
+    this._io.to(socketId).emit("nego:receive", {offer, from: caller});
   }
+
+  private handleNegotiationAnswer(socket: Socket, {answer , to}: {answer: string , to: string}) {
+    console.log("Negotiating answer:", answer , to, "from" , this.socketToUser[socket.id]);
+    const socketId = this.userToSocket[to];
+    this._io.to(socketId).emit("nego:answer", {answer});
+  }
+
   private handleDisconnect(socket: Socket) {
     const disconnectedUser = this.socketToUser[socket.id];
     console.log(`User ${disconnectedUser} disconnected`);

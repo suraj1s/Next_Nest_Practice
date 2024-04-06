@@ -18,14 +18,14 @@ export interface IMessageType {
 interface IStartCall {
   offer: string;
   caller: string;
-  callType : "AUDIO" | "VIDEO"
+  callType: "AUDIO" | "VIDEO";
   receiver: string;
 }
 
 interface ICallReceive {
   caller: string;
   offer: string;
-  callType : "AUDIO" | "VIDEO"
+  callType: "AUDIO" | "VIDEO";
 }
 interface ICallAnswer {
   answer: string;
@@ -33,16 +33,34 @@ interface ICallAnswer {
   status: boolean;
 }
 
+interface INegotiationStart {
+  offer: string;
+  to: string;
+}
+interface INegotiationReceive {
+  offer: string;
+  from: string;
+}
+
+interface INegotiationAnswer {
+  answer: string;
+  to: string;
+}
+
 interface ISocketContext {
   sendMessage: (msg: IMessageType) => void;
   createRoom: ({ room, user }: { room: string; user: string }) => void;
   startCall: ({ offer, caller, receiver, callType }: IStartCall) => void;
   answerCall: ({ status, answer }: ICallAnswer) => void;
+  startNegotiation: ({ offer, to }: INegotiationStart) => void;
+  answerNego: ({ answer, to }: INegotiationAnswer) => void;
   messages: IMessageType | undefined;
   roomMembers: string[];
   callReceive: ICallReceive;
-  callAnswer: ICallAnswer;
+  // callAnswer: ICallAnswer;
   callAnswerResponse: ICallAnswer;
+  negoAnswerResponse: { answer: string };
+  negoReceive: INegotiationReceive;
 }
 
 interface SocketProviderProps {
@@ -64,18 +82,26 @@ export const SocketProvider: React.FC<SocketProviderProps> = ({ children }) => {
   const [callReceive, setCallReceive] = useState<ICallReceive>({
     caller: "",
     offer: "",
-    callType : "AUDIO"
+    callType: "AUDIO",
   });
-  const [callAnswer, setCallAnswer] = useState<ICallAnswer>({
-    status: false,
-    caller: "",
-    answer: "",
+  // const [callAnswer, setCallAnswer] = useState<ICallAnswer>({
+  //   status: false,
+  //   caller: "",
+  //   answer: "",
+  // });
+  const [negoReceive, setNegoReceive] = useState<INegotiationReceive>({
+    offer: "",
+    from: "",
   });
 
   const [callAnswerResponse, setCallAnswerResponse] = useState<ICallAnswer>({
     status: false,
     answer: "",
     caller: "",
+  });
+
+  const [negoAnswerResponse, setNegoAnswerResponse] = useState({
+    answer: "",
   });
 
   const sendMessage = useCallback(
@@ -98,12 +124,7 @@ export const SocketProvider: React.FC<SocketProviderProps> = ({ children }) => {
   );
 
   const startCall = useCallback(
-    ({
-      offer,
-      caller,
-      receiver,
-      callType,
-    }: IStartCall) => {
+    ({ offer, caller, receiver, callType }: IStartCall) => {
       if (socket) {
         socket.emit("call:start", { offer, caller, receiver, callType });
       }
@@ -119,6 +140,25 @@ export const SocketProvider: React.FC<SocketProviderProps> = ({ children }) => {
     },
     [socket]
   );
+
+  const startNegotiation = useCallback(
+    ({ offer, to }: INegotiationStart) => {
+      if (socket) {
+        socket.emit("nego:start", { offer, to });
+      }
+    },
+    [socket]
+  );
+
+  const answerNego = useCallback(
+    ({ answer, to }: INegotiationAnswer) => {
+      if (socket) {
+        socket.emit("nego:answer", { answer, to });
+      }
+    },
+    [socket]
+  );
+
   const onRoomJoined = useCallback((user: { users: string[] }) => {
     console.log("uer joined room", user);
     setRoomMembers(user.users);
@@ -134,21 +174,39 @@ export const SocketProvider: React.FC<SocketProviderProps> = ({ children }) => {
   // }, []);
 
   // for Reviever
-  const onCallReceive = useCallback(({ offer, caller, callType }: ICallReceive) => {
-    console.log("call received ", { caller, offer , callType });
-    setCallReceive({ caller, offer, callType });
-  }, []);
+  const onCallReceive = useCallback(
+    ({ offer, caller, callType }: ICallReceive) => {
+      console.log("call received ", { caller, offer, callType });
+      setCallReceive({ caller, offer, callType });
+    },
+    []
+  );
 
   // for Caller
-  const onCallAnswer = useCallback(({ answer, status, caller }: ICallAnswer) => {
-    console.log("call answer .........", answer, status, caller);
-    setCallAnswerResponse({ answer, status, caller});
-  }, []);
+  const onCallAnswer = useCallback(
+    ({ answer, status, caller }: ICallAnswer) => {
+      console.log("call answer .........", answer, status, caller);
+      setCallAnswerResponse({ answer, status, caller });
+    },
+    []
+  );
 
   // const Caller & Reciever
   const onCallEnd = useCallback((data: any) => {
     console.log("call end", data);
   }, []);
+
+  const onNegoReceive = useCallback(({ offer, from }: INegotiationReceive) => {
+    console.log("negotiation received", { offer, from });
+    setNegoReceive({ offer, from });
+  }, []);
+
+  // for Caller
+  const onNegoAnswer = useCallback(({ answer }: { answer: string }) => {
+    console.log("nego answer.........", answer);
+    setNegoAnswerResponse({ answer });
+  }, []);
+
 
   useEffect(() => {
     const _socket = io("http://localhost:8000");
@@ -156,6 +214,8 @@ export const SocketProvider: React.FC<SocketProviderProps> = ({ children }) => {
     _socket.on("room:userJoined", onRoomJoined);
     _socket.on("call:receive", onCallReceive);
     _socket.on("call:answer", onCallAnswer);
+    _socket.on("nego:receive", onNegoReceive);
+    _socket.on("nego:answer", onNegoAnswer);
     _socket.on("call:end", onCallEnd);
 
     setSocket(_socket);
@@ -165,7 +225,8 @@ export const SocketProvider: React.FC<SocketProviderProps> = ({ children }) => {
       _socket.off("room:userJoined", onRoomJoined);
       _socket.off("call:receive", onCallReceive);
       _socket.off("call:answer", onCallAnswer);
-
+      _socket.off("nego:receive", onNegoReceive);
+      _socket.off("nego:answer", onNegoAnswer);
       _socket.off("call:end", onCallEnd);
       _socket.disconnect();
     };
@@ -177,22 +238,30 @@ export const SocketProvider: React.FC<SocketProviderProps> = ({ children }) => {
       createRoom,
       startCall,
       answerCall,
+      startNegotiation,
+      answerNego,
       messages,
       roomMembers,
       callReceive,
-      callAnswer,
+      // callAnswer,
       callAnswerResponse,
+      negoReceive,
+      negoAnswerResponse,
     }),
     [
       sendMessage,
       createRoom,
       startCall,
       answerCall,
+      startNegotiation,
+      answerNego,
       messages,
       roomMembers,
       callReceive,
-      callAnswer,
+      // callAnswer,
       callAnswerResponse,
+      negoReceive,
+      negoAnswerResponse,
     ]
   );
 

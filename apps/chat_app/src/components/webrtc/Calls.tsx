@@ -69,6 +69,13 @@ const Calls = ({ caller, receiver }: ICallsProps) => {
 
   // set stram after connection
   const sendStreams = useCallback(() => {
+    console.log(
+      "send stram:   ",
+      userMediaIntance.mediaInstance,
+      "sendStreams",
+      webRTCServiceInstance.peer,
+      "webRTCServiceInstance.peer"
+    );
     if (
       userMediaIntance.mediaInstance !== null &&
       webRTCServiceInstance.peer !== null
@@ -80,14 +87,14 @@ const Calls = ({ caller, receiver }: ICallsProps) => {
         );
       }
     }
-  }, [userMediaIntance.mediaInstance]);
+  }, [userMediaIntance.mediaInstance, webRTCServiceInstance.peer]);
 
   // set answer after connection
   useEffect(() => {
     if (
-      callAnswerResponse.answer !== "" &&
-      callAnswerResponse.status === true &&
-      callAnswerResponse.caller === receiver
+      callAnswerResponse.answer !== ""
+      // callAnswerResponse.status === true &&
+      // callAnswerResponse.caller === receiver
     ) {
       webRTCServiceInstance.setAnswer(JSON.parse(callAnswerResponse.answer));
       sendStreams();
@@ -100,18 +107,23 @@ const Calls = ({ caller, receiver }: ICallsProps) => {
       userMediaIntance.mediaInstance !== null &&
       webRTCServiceInstance.peer !== null
     ) {
-      webRTCServiceInstance.peer.addEventListener("track", async (ev) => {
-        const remoteStream = ev.streams;
+      console.log("GOT TRACKS!!");
+      webRTCServiceInstance.peer.addEventListener("track", async (event) => {
+        const remoteStream = event.streams;
         console.log("GOT TRACKS!!");
         setRemoteStream(remoteStream[0]);
       });
     }
+
   }, [userMediaIntance.mediaInstance, webRTCServiceInstance.peer]);
 
   // render local strem
   useEffect(() => {
     if (userMediaIntance) {
-      console.log(userMediaIntance.getMediaStream(), " local  userMediaIntance");
+      console.log(
+        userMediaIntance.getMediaStream(),
+        " local  userMediaIntance"
+      );
       if (streamTitle === "Audio") {
         stremeRef.current.srcObject = userMediaIntance.mediaInstance;
       }
@@ -189,21 +201,22 @@ const Calls = ({ caller, receiver }: ICallsProps) => {
                     });
                     setCallAnswerStatus("Answered");
 
-                    console.log("call accepted");
+                    console.log("call accepted", callReceive.callType);
                     if (callReceive.callType === "AUDIO") {
                       setStreamTitle("Audio");
-                      handleOpenMedia({ audio: true });
+                     await handleOpenMedia({ audio: true });
                     }
                     if (callReceive.callType === "VIDEO") {
                       setStreamTitle("Video");
-                      handleOpenMedia({ video: true });
+                      await handleOpenMedia({ video: true });
                     }
+                    sendStreams();
                   }}
                   className="border border-slate-300 rounded-md  px-3 py-1 hover:bg-slate-700 hover:text-blue-400 "
                 >
                   Accept Call
                 </button>
-                <button
+                {/* <button
                   onClick={async () => {
                     answerCall({
                       answer: "",
@@ -216,7 +229,7 @@ const Calls = ({ caller, receiver }: ICallsProps) => {
                   className="border border-slate-300 rounded-md  px-3 py-1 hover:bg-slate-700 hover:text-blue-400 "
                 >
                   Reject Call
-                </button>
+                </button> */}
               </div>
             )}
           </div>
