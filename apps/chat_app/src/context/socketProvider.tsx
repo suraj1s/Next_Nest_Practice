@@ -116,7 +116,7 @@ export const SocketProvider: React.FC<SocketProviderProps> = ({ children }) => {
   const createRoom = useCallback(
     ({ room, user }: { room: string; user: string }) => {
       if (socket) {
-        console.log(room, user, "room user");
+        // console.log(room, user, "room user");
         socket.emit("room:join", { room, user });
       }
     },
@@ -160,7 +160,7 @@ export const SocketProvider: React.FC<SocketProviderProps> = ({ children }) => {
   );
 
   const onRoomJoined = useCallback((user: { users: string[] }) => {
-    console.log("uer joined room", user);
+    // console.log("uer joined room", user);
     setRoomMembers(user.users);
   }, []);
 
@@ -176,7 +176,7 @@ export const SocketProvider: React.FC<SocketProviderProps> = ({ children }) => {
   // for Reviever
   const onCallReceive = useCallback(
     ({ offer, caller, callType }: ICallReceive) => {
-      console.log("call received ", { caller, offer, callType });
+      // console.log("call received ", { caller, offer, callType });
       setCallReceive({ caller, offer, callType });
     },
     []
@@ -185,7 +185,7 @@ export const SocketProvider: React.FC<SocketProviderProps> = ({ children }) => {
   // for Caller
   const onCallAnswer = useCallback(
     ({ answer, status, caller }: ICallAnswer) => {
-      console.log("call answer .........", answer, status, caller);
+      // console.log("call answer .........", answer, status, caller);
       setCallAnswerResponse({ answer, status, caller });
     },
     []
@@ -193,17 +193,17 @@ export const SocketProvider: React.FC<SocketProviderProps> = ({ children }) => {
 
   // const Caller & Reciever
   const onCallEnd = useCallback((data: any) => {
-    console.log("call end", data);
+    // console.log("call end", data);
   }, []);
 
   const onNegoReceive = useCallback(({ offer, from }: INegotiationReceive) => {
-    console.log("negotiation received", { offer, from });
+    // console.log("negotiation received", { offer, from });
     setNegoReceive({ offer, from });
   }, []);
 
   // for Caller
   const onNegoAnswer = useCallback(({ answer }: { answer: string }) => {
-    console.log("nego answer.........", answer);
+    // console.log("nego answer.........", answer);
     setNegoAnswerResponse({ answer });
   }, []);
 

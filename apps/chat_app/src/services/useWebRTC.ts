@@ -26,11 +26,31 @@ class WebRTCService {
     return WebRTCService.instance;
   }
   // first we will create a offer and set it to setLocalDescription
-  async createOffer() {
+  async createOffer({
+    caller,
+    reciever,
+    type,
+  }: {
+    caller: string;
+    reciever: string;
+    type: "nego" | "call";
+  }) {
     if (this.peer) {
       try {
         const offer = await this.peer.createOffer();
         await this.peer.setLocalDescription(offer);
+        this.peer.localDescription
+        console.log(
+          "Create Offer :::::::::::  ",
+          "type : ",
+          type,
+          "caller : ",
+          caller,
+          "reciever : ",
+          reciever,
+          "offer : ",
+          offer
+        );
         return offer;
       } catch (error) {
         console.error("Error creating offer:", error);
@@ -42,19 +62,63 @@ class WebRTCService {
 
   // once created we need to send offer to other peer
   // set it to their setRemoteDescription and create answer and set it to setLocalDescription
-  async createAnswer(offer: RTCSessionDescriptionInit) {
+  async createAnswer({
+    offer,
+    caller,
+    reciever,
+    type,
+  }: {
+    offer: RTCSessionDescriptionInit;
+    caller: string;
+    reciever: string;
+    type: "nego" | "call";
+  }) {
     if (this.peer) {
       await this.peer.setRemoteDescription(new RTCSessionDescription(offer));
       const answer = await this.peer.createAnswer();
       await this.peer.setLocalDescription(answer);
+      console.log(
+        "Create Answer :::::::::::  ",
+        "type : ",
+        type,
+        "caller : ",
+        caller,
+        "reciever : ",
+        reciever,
+        "answer : ",
+        answer,
+        "offer : ",
+        offer
+      );
       return answer;
     }
     throw new Error("RTCPeerConnection is not available");
   }
   // once we get the answer we will set it to setRemoteDescription of the peer who created the offer
-  async setAnswer(answer: RTCSessionDescriptionInit) {
+  async setAnswer({
+    answer,
+    caller,
+    reciever,
+    type,
+  }: {
+    answer: RTCSessionDescriptionInit;
+    caller: string;
+    reciever: string;
+    type: "nego" | "call";
+  }) {
     if (this.peer) {
       await this.peer.setRemoteDescription(new RTCSessionDescription(answer));
+      console.log(
+        "Set Answer :::::::::::  ",
+        "type : ",
+        type,
+        "caller : ",
+        caller,
+        "reciever : ",
+        reciever,
+        "answer : ",
+        answer
+      );
     }
   }
 }
