@@ -10,16 +10,7 @@ interface ICallsProps {
   receiver: string;
 }
 const CallsTest = ({ caller, receiver }: ICallsProps) => {
-  const {
-    startCall,
-    answerCall,
-    startNegotiation,
-    answerNego,
-    callReceive,
-    callAnswerResponse,
-    negoReceive,
-    negoAnswerResponse,
-  } = useSocket();
+  const { startCall, answerCall, startNegotiation, callReceive } = useSocket();
 
   const [remoteStream, setRemoteStream] = useState<MediaStream | null>(null);
   const [localStream, setLocalStream] = useState<MediaStream | null>(null);
@@ -27,16 +18,6 @@ const CallsTest = ({ caller, receiver }: ICallsProps) => {
   const [callAnswerStatus, setCallAnswerStatus] = useState<
     "Not Answered" | "Answered" | "Rejected"
   >("Not Answered");
-
-  // state for local localdescription and remote description after call start and answer , localdescription afet negotiation and remote description after nego
-  const [localDescription, setLocalDescription] =
-    useState<RTCSessionDescriptionInit | null>(null);
-  const [remoteDescription, setRemoteDescription] =
-    useState<RTCSessionDescription | null>(null);
-  const [localNegoDescription, setLocalNegoDescription] =
-    useState<RTCSessionDescriptionInit | null>(null);
-  const [remoteNegoDescription, setRemoteNegoDescription] =
-    useState<RTCSessionDescription | null>(null);
 
   const handelCallStart = async ({
     callType,
@@ -46,18 +27,14 @@ const CallsTest = ({ caller, receiver }: ICallsProps) => {
     if (typeof window !== "undefined") {
       try {
         const localStream = await navigator.mediaDevices.getUserMedia({
-          // audio: true,
-          video: true,
+          audio: true,
+          // video: true,
         });
         setLocalStream(localStream);
         const offer = await webRTCServiceInstance.createOffer({
-          caller,
-          reciever: receiver,
           type: "call",
         });
-        setLocalDescription(offer);
-        const stringifiedOffer = JSON.stringify(offer);
-        startCall({ offer: stringifiedOffer, caller, receiver, callType });
+        startCall({ offer, caller, receiver, callType });
       } catch (error) {
         console.error("Error creating offer:", error);
       }
@@ -66,24 +43,19 @@ const CallsTest = ({ caller, receiver }: ICallsProps) => {
 
   const handelAnswerCall = async () => {
     const localStream = await navigator.mediaDevices.getUserMedia({
-      // audio: true,
-      video: true,
+      audio: true,
+      // video: true,
     });
     setLocalStream(localStream);
     //  // console.log(callReceive.offer, "callReceive.offer");
-    const offer = JSON.parse(callReceive.offer);
-    setRemoteDescription(offer);
+    const offer = callReceive.offer;
     const answer = await webRTCServiceInstance.createAnswer({
       offer,
-      caller,
-      reciever: receiver,
+
       type: "call",
     });
-    setLocalDescription(answer);
-    const stringifiedAnswer = JSON.stringify(answer);
-    //  // console.log(stringifiedAnswer, "stringifiedAnswer");
     answerCall({
-      answer: stringifiedAnswer,
+      answer,
       status: true,
       caller: callReceive.caller,
     });
@@ -92,43 +64,24 @@ const CallsTest = ({ caller, receiver }: ICallsProps) => {
 
   const sendStreams = useCallback(() => {
     if (webRTCServiceInstance.peer && localStream) {
+      console.log(webRTCServiceInstance.peer, "webRTCServiceInstance.peer");
       for (const track of localStream.getTracks()) {
         webRTCServiceInstance.peer.addTrack(track, localStream);
       }
     }
   }, [localStream]);
 
-  // set answer
-  useEffect(() => {
-    if (
-      callAnswerResponse.status === true &&
-      callAnswerResponse.answer !== ""
-    ) {
-      const answer = JSON.parse(callAnswerResponse.answer);
-      setRemoteDescription(answer);
-      webRTCServiceInstance.setAnswer({
-        answer,
-        caller,
-        reciever: receiver,
-        type: "call",
-      });
-      // console.log("call accepted from other peer", receiver);
-      sendStreams();
-    }
-  }, [callAnswerResponse, sendStreams]);
-
   // negociation start
   const handelNegotiationNeeded = async () => {
-    // console.log("Negotiation needed", caller);
+    console.log("Negotiation needed", caller);
     const offer = await webRTCServiceInstance.createOffer({
-      caller,
-      reciever: receiver,
       type: "nego",
     });
-    setLocalNegoDescription(offer);
-    const stringifiedOffer = JSON.stringify(offer);
-    //  // console.log(stringifiedOffer, "stringifiedOffer");
-    startNegotiation({ offer: stringifiedOffer, to: receiver });
+    if (callReceive.caller === "") {
+      startNegotiation({ offer, to: receiver });
+    } else {
+      startNegotiation({ offer, to: callReceive.caller });
+    }
   };
 
   useEffect(() => {
@@ -147,49 +100,7 @@ const CallsTest = ({ caller, receiver }: ICallsProps) => {
     };
   }, []);
 
-  // negociation revieved
-  const memoizedCallback = useCallback(async () => {
-    // console.log(negoReceive, "negoReceive ... inside useCallback");
-    if (negoReceive.offer !== "") {
-      const offer = JSON.parse(negoReceive.offer);
-      setRemoteNegoDescription(offer);
-      const answer = await webRTCServiceInstance.createAnswer({
-        offer,
-        caller: negoReceive.from,
-        reciever: caller,
-        type: "nego",
-      });
-      setLocalNegoDescription(answer);
-      const stringifiedAnswer = JSON.stringify(answer);
-      // console.log(stringifiedAnswer, "stringifiedAnswer answer nego ...");
-      answerNego({ answer: stringifiedAnswer, to: negoReceive.from });
-    }
-  }, [negoReceive]);
-
-  useEffect(() => {
-    memoizedCallback();
-  }, [memoizedCallback, negoReceive]);
-
   // console.log(negoReceive, "negoReceive ...");
-
-  // negociation answer received
-  const setNegoFinalAnswer = useCallback(async () => {
-    if (negoAnswerResponse.answer !== "") {
-      const answer = JSON.parse(negoAnswerResponse.answer);
-      setRemoteNegoDescription(answer);
-      await webRTCServiceInstance.setAnswer({
-        answer,
-        caller,
-        reciever: receiver,
-        type: "nego",
-      });
-      // console.log(answer, "negoAnswerResponse answer ...");
-    }
-  }, [negoAnswerResponse]);
-
-  useEffect(() => {
-    setNegoFinalAnswer();
-  }, [negoAnswerResponse]);
 
   // set remote strem
   useEffect(() => {
@@ -208,68 +119,6 @@ const CallsTest = ({ caller, receiver }: ICallsProps) => {
 
   return (
     <div className="flex flex-col gap-5">
-      <div className="text-sm font-normal gap-4 flex flex-col ">
-        {localDescription && (
-          <p className="border border-slate-300 rounded-md p-3">
-            localDescription :
-            <button
-              className="border border-slate-300 rounded-md  px-3 py-1 hover:bg-slate-700 hover:text-blue-400 "
-              onClick={() => {
-                webRTCServiceInstance.peer?.setLocalDescription(
-                  new RTCSessionDescription(localDescription)
-                );
-              }}
-            >
-              set
-            </button>
-          </p>
-        )}
-        {remoteDescription && (
-          <p className="border border-slate-300 rounded-md p-3">
-            remoteDescription :{" "}
-            <button
-              className="border border-slate-300 rounded-md  px-3 py-1 hover:bg-slate-700 hover:text-blue-400 "
-              onClick={() => {
-                webRTCServiceInstance.peer?.setRemoteDescription(
-                  new RTCSessionDescription(remoteDescription)
-                );
-              }}
-            >
-              set
-            </button>
-          </p>
-        )}
-        {localNegoDescription && (
-          <p className="border border-slate-300 rounded-md p-3">
-            localNegoDescription :
-            <button
-              className="border border-slate-300 rounded-md  px-3 py-1 hover:bg-slate-700 hover:text-blue-400 "
-              onClick={() => {
-                webRTCServiceInstance.peer?.setLocalDescription(
-                  new RTCSessionDescription(localNegoDescription)
-                );
-              }}
-            >
-              set
-            </button>
-          </p>
-        )}
-        {remoteNegoDescription && (
-          <p className="border border-slate-300 rounded-md p-3">
-            remoteNegoDescription :
-            <button
-              className="border border-slate-300 rounded-md  px-3 py-1 hover:bg-slate-700 hover:text-blue-400 "
-              onClick={() => {
-                webRTCServiceInstance.peer?.setRemoteDescription(
-                  new RTCSessionDescription(remoteNegoDescription)
-                );
-              }}
-            >
-              set
-            </button>
-          </p>
-        )}
-      </div>
       {
         <div className="flex gap-x-4 text-sm  ">
           <button
@@ -280,18 +129,18 @@ const CallsTest = ({ caller, receiver }: ICallsProps) => {
           >
             Video
           </button>
-          <button
+          {/* <button
             onClick={async () => {
               await userMediaIntance?.closeAllStreams();
             }}
             className="border border-slate-300 rounded-md  px-3 py-1 hover:bg-slate-700 hover:text-blue-400 "
           >
             Close Media
-          </button>
+          </button> */}
         </div>
       }
       <div>
-        {callReceive.offer !== "" && callReceive.caller !== "" && (
+        {callReceive.offer !== null && callReceive.caller !== "" && (
           <div>
             {callAnswerStatus === "Not Answered" && (
               <h1>
@@ -320,7 +169,7 @@ const CallsTest = ({ caller, receiver }: ICallsProps) => {
           Send Stream
         </button>
       )}
-      <div className="flex justify-between gap-10">
+      <div className="flex flex-col flex-wrap  gap-10">
         {localStream && (
           <div>
             <p>Your video</p>

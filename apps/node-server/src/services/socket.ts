@@ -88,14 +88,14 @@ class SocketService {
   }
 
   private handleCallStart(socket: Socket, {offer , caller , receiver, callType} : IStartCall ) {
-    console.log("Starting call:", { "from": caller , "to": receiver , "with offer": offer, "callType": callType });
+    console.log("Starting call:", { "from": caller , "to": receiver , "callType": callType });
     // socket.to(data.room).emit("call:receive", data);
     const socketId = this.userToSocket[receiver];
     this._io.to(socketId).emit("call:receive", {offer , caller, callType });
   }
 
   private handleCallAnswer(socket: Socket, {answer , status, caller}: ICallAnswer) {
-    console.log("Answering call:", answer , status, caller);
+    console.log("Answering call:" , status, caller);
     console.log("caller " , caller );
     const receiver = this.socketToUser[socket.id];
     const callerSocketId = this.userToSocket[caller];
@@ -103,14 +103,14 @@ class SocketService {
   }
 
   private handleNegotiationStart(socket: Socket, {offer , to}: {offer: string , to: string}) {
-    console.log("Negotiating call:", offer , to);
+    console.log("nego start :" , to);
     const socketId = this.userToSocket[to];
     const caller = this.socketToUser[socket.id];
     this._io.to(socketId).emit("nego:receive", {offer, from: caller});
   }
 
   private handleNegotiationAnswer(socket: Socket, {answer , to}: {answer: string , to: string}) {
-    console.log("Negotiating answer:", answer , to, "from" , this.socketToUser[socket.id]);
+    console.log("nego  answer:" , to, "from" , this.socketToUser[socket.id]);
     const socketId = this.userToSocket[to];
     this._io.to(socketId).emit("nego:answer", {answer});
   }
