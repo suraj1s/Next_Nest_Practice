@@ -110,7 +110,7 @@ class SocketService {
   }
 
   private handleNegotiationAnswer(socket: Socket, {answer , to}: {answer: string , to: string}) {
-    console.log("nego  answer:" , to, "from" , this.socketToUser[socket.id]);
+    console.log("nego  answer: to" , to, "from" , this.socketToUser[socket.id]);
     const socketId = this.userToSocket[to];
     this._io.to(socketId).emit("nego:answer", {answer});
   }

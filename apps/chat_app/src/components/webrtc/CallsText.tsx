@@ -27,8 +27,8 @@ const CallsTest = ({ caller, receiver }: ICallsProps) => {
     if (typeof window !== "undefined") {
       try {
         const localStream = await navigator.mediaDevices.getUserMedia({
-          audio: true,
-          // video: true,
+          // audio: true,
+          video: true,
         });
         setLocalStream(localStream);
         const offer = await webRTCServiceInstance.createOffer({
@@ -43,8 +43,8 @@ const CallsTest = ({ caller, receiver }: ICallsProps) => {
 
   const handelAnswerCall = async () => {
     const localStream = await navigator.mediaDevices.getUserMedia({
-      audio: true,
-      // video: true,
+      // audio: true,
+      video: true,
     });
     setLocalStream(localStream);
     //  // console.log(callReceive.offer, "callReceive.offer");
@@ -98,7 +98,7 @@ const CallsTest = ({ caller, receiver }: ICallsProps) => {
           handelNegotiationNeeded
         );
     };
-  }, []);
+  }, [startNegotiation]);
 
   // console.log(negoReceive, "negoReceive ...");
 
