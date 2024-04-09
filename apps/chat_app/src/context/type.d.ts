@@ -42,7 +42,6 @@ export interface IMessageType {
     startCall: ({ offer, caller, receiver, callType }: IStartCall) => void;
     answerCall: ({ status, answer }: ICallAnswer) => void;
     startNegotiation: ({ offer, to }: INegotiationStart) => void;
-    answerNego: ({ answer, to }: INegotiationAnswer) => void;
     messages: IMessageType | undefined;
     roomMembers: string[];
     callReceive: ICallReceive;
