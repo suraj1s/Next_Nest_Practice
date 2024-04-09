@@ -1,8 +1,9 @@
 "use client";
 // import Calls from "@/components/webrtc/Calls";
-// import CallsTest from "@/components/webrtc/CallsText";
-import NewCall from "@/components/webrtc/NewCall";
-import { IMessageType, useSocket } from "@/context/socketProvider";
+import CallsTest from "@/components/webrtc/CallsText";
+// import NewCall from "@/components/webrtc/NewCall";
+import {  useSocket } from "@/context/socketProvider";
+import { IMessageType } from "@/context/type";
 import { useRouter } from "next/navigation";
 import React, { useEffect, useRef, useState } from "react";
 
@@ -92,10 +93,10 @@ const Page: React.FC = () => {
            
             {roomMembers?.length > 1 &&
               (receiver !== "" ||
-                (callReceive.offer !== "" && callReceive.caller !== "")) && (
+                (callReceive.offer !== null && callReceive.caller !== "")) && (
                 // <Calls caller={userName} receiver={receiver} />
-                // <CallsTest caller={userName} receiver={receiver} />
-                <NewCall caller={userName} receiver={receiver} />
+                <CallsTest caller={userName} receiver={receiver} />
+                // <NewCall caller={userName} receiver={receiver} />
               )}
           </div>
         </div>

@@ -1,5 +1,6 @@
 "use client";
 
+import { webRTCServiceInstance } from "@/services/useWebRTC";
 import React, {
   createContext,
   useCallback,
@@ -9,63 +10,17 @@ import React, {
   useState,
 } from "react";
 import { io, Socket } from "socket.io-client";
-
-export interface IMessageType {
-  message: string;
-  room: string;
-  user: string;
-}
-interface IStartCall {
-  offer: string;
-  caller: string;
-  callType: "AUDIO" | "VIDEO";
-  receiver: string;
-}
-
-interface ICallReceive {
-  caller: string;
-  offer: string;
-  callType: "AUDIO" | "VIDEO";
-}
-interface ICallAnswer {
-  answer: string;
-  caller: string;
-  status: boolean;
-}
-
-interface INegotiationStart {
-  offer: string;
-  to: string;
-}
-interface INegotiationReceive {
-  offer: string;
-  from: string;
-}
-
-interface INegotiationAnswer {
-  answer: string;
-  to: string;
-}
-
-interface ISocketContext {
-  sendMessage: (msg: IMessageType) => void;
-  createRoom: ({ room, user }: { room: string; user: string }) => void;
-  startCall: ({ offer, caller, receiver, callType }: IStartCall) => void;
-  answerCall: ({ status, answer }: ICallAnswer) => void;
-  startNegotiation: ({ offer, to }: INegotiationStart) => void;
-  answerNego: ({ answer, to }: INegotiationAnswer) => void;
-  messages: IMessageType | undefined;
-  roomMembers: string[];
-  callReceive: ICallReceive;
-  // callAnswer: ICallAnswer;
-  callAnswerResponse: ICallAnswer;
-  negoAnswerResponse: { answer: string };
-  negoReceive: INegotiationReceive;
-}
-
-interface SocketProviderProps {
-  children?: React.ReactNode;
-}
+import {
+  ICallAnswer,
+  ICallReceive,
+  IMessageType,
+  INegotiationAnswer,
+  INegotiationReceive,
+  INegotiationStart,
+  ISocketContext,
+  IStartCall,
+  SocketProviderProps,
+} from "./type";
 
 const SocketContext = createContext<ISocketContext | null>(null);
 
@@ -76,32 +31,13 @@ export const useSocket = () => {
 };
 
 export const SocketProvider: React.FC<SocketProviderProps> = ({ children }) => {
-  const [socket, setSocket] = useState<Socket | undefined>();
+  const [socket, setSocket] = useState<Socket>();
   const [messages, setMessages] = useState<IMessageType | undefined>();
   const [roomMembers, setRoomMembers] = useState<string[]>([]);
   const [callReceive, setCallReceive] = useState<ICallReceive>({
     caller: "",
-    offer: "",
+    offer: null,
     callType: "AUDIO",
-  });
-  // const [callAnswer, setCallAnswer] = useState<ICallAnswer>({
-  //   status: false,
-  //   caller: "",
-  //   answer: "",
-  // });
-  const [negoReceive, setNegoReceive] = useState<INegotiationReceive>({
-    offer: "",
-    from: "",
-  });
-
-  const [callAnswerResponse, setCallAnswerResponse] = useState<ICallAnswer>({
-    status: false,
-    answer: "",
-    caller: "",
-  });
-
-  const [negoAnswerResponse, setNegoAnswerResponse] = useState({
-    answer: "",
   });
 
   const sendMessage = useCallback(
@@ -116,7 +52,7 @@ export const SocketProvider: React.FC<SocketProviderProps> = ({ children }) => {
   const createRoom = useCallback(
     ({ room, user }: { room: string; user: string }) => {
       if (socket) {
-        console.log(room, user, "room user");
+        // console.log(room, user, "room user");
         socket.emit("room:join", { room, user });
       }
     },
@@ -144,23 +80,15 @@ export const SocketProvider: React.FC<SocketProviderProps> = ({ children }) => {
   const startNegotiation = useCallback(
     ({ offer, to }: INegotiationStart) => {
       if (socket) {
+        console.log("start nego === :: ", { offer, to });
         socket.emit("nego:start", { offer, to });
       }
     },
     [socket]
   );
 
-  const answerNego = useCallback(
-    ({ answer, to }: INegotiationAnswer) => {
-      if (socket) {
-        socket.emit("nego:answer", { answer, to });
-      }
-    },
-    [socket]
-  );
-
   const onRoomJoined = useCallback((user: { users: string[] }) => {
-    console.log("uer joined room", user);
+    // console.log("uer joined room", user);
     setRoomMembers(user.users);
   }, []);
 
@@ -168,15 +96,10 @@ export const SocketProvider: React.FC<SocketProviderProps> = ({ children }) => {
     setMessages(msg);
   }, []);
 
-  // // for Caller
-  // const onCallStart = useCallback((data: any) => {
-  //   console.log("call start", data);
-  // }, []);
-
   // for Reviever
   const onCallReceive = useCallback(
     ({ offer, caller, callType }: ICallReceive) => {
-      console.log("call received ", { caller, offer, callType });
+      // console.log("call received ", { caller, offer, callType });
       setCallReceive({ caller, offer, callType });
     },
     []
@@ -185,27 +108,52 @@ export const SocketProvider: React.FC<SocketProviderProps> = ({ children }) => {
   // for Caller
   const onCallAnswer = useCallback(
     ({ answer, status, caller }: ICallAnswer) => {
-      console.log("call answer .........", answer, status, caller);
-      setCallAnswerResponse({ answer, status, caller });
+      // console.log("call answer .........", answer, status, caller);
+      webRTCServiceInstance.setAnswer({
+        answer,
+        type: "call",
+      });
     },
     []
   );
 
-  // const Caller & Reciever
-  const onCallEnd = useCallback((data: any) => {
-    console.log("call end", data);
-  }, []);
-
-  const onNegoReceive = useCallback(({ offer, from }: INegotiationReceive) => {
-    console.log("negotiation received", { offer, from });
-    setNegoReceive({ offer, from });
-  }, []);
+  const onNegoReceive1 = async ({ offer, from , socket }: any) => {
+    console.log("negotiation received === ::: ", { offer, from});
+    const answer = await webRTCServiceInstance.createAnswer({
+      offer,
+      type: "nego",
+    });
+    socket && socket.emit("nego:answer", { answer, to : from });
+  };
+  // const onNegoReceive = useCallback(
+  //   async ({ offer, from }: INegotiationReceive) => {
+  //     console.log("negotiation received === ::: ", { offer, from });
+  //     const answer = await webRTCServiceInstance.createAnswer({
+  //       offer,
+  //       type: "nego",
+  //     });
+  //     console.log(
+  //       "answer nego === :: socket&& ",
+  //       { answer, from },
+  //       " socket",
+  //       socket
+  //     );
+  //     socket && socket.emit("nego:answer", { answer, from });
+  //   },
+  //   [socket]
+  // );
 
   // for Caller
-  const onNegoAnswer = useCallback(({ answer }: { answer: string }) => {
-    console.log("nego answer.........", answer);
-    setNegoAnswerResponse({ answer });
-  }, []);
+  const onNegoAnswer = useCallback(
+    async ({ answer }: { answer: RTCSessionDescriptionInit | null }) => {
+      console.log("nego answer === :::", answer);
+      await webRTCServiceInstance.setAnswer({
+        answer,
+        type: "nego",
+      });
+    },
+    [socket]
+  );
 
   useEffect(() => {
     const _socket = io("http://localhost:8000");
@@ -213,9 +161,10 @@ export const SocketProvider: React.FC<SocketProviderProps> = ({ children }) => {
     _socket.on("room:userJoined", onRoomJoined);
     _socket.on("call:receive", onCallReceive);
     _socket.on("call:answer", onCallAnswer);
-    _socket.on("nego:receive", onNegoReceive);
+    _socket.on("nego:receive", ({ offer, from }: INegotiationReceive)=> {
+      onNegoReceive1({ offer, from , socket: _socket });
+    });
     _socket.on("nego:answer", onNegoAnswer);
-    _socket.on("call:end", onCallEnd);
 
     setSocket(_socket);
 
@@ -224,9 +173,8 @@ export const SocketProvider: React.FC<SocketProviderProps> = ({ children }) => {
       _socket.off("room:userJoined", onRoomJoined);
       _socket.off("call:receive", onCallReceive);
       _socket.off("call:answer", onCallAnswer);
-      _socket.off("nego:receive", onNegoReceive);
+      // _socket.off("nego:receive", onNegoReceive);
       _socket.off("nego:answer", onNegoAnswer);
-      _socket.off("call:end", onCallEnd);
       _socket.disconnect();
     };
   }, []);
@@ -238,14 +186,10 @@ export const SocketProvider: React.FC<SocketProviderProps> = ({ children }) => {
       startCall,
       answerCall,
       startNegotiation,
-      answerNego,
       messages,
       roomMembers,
       callReceive,
       // callAnswer,
-      callAnswerResponse,
-      negoReceive,
-      negoAnswerResponse,
     }),
     [
       sendMessage,
@@ -253,14 +197,10 @@ export const SocketProvider: React.FC<SocketProviderProps> = ({ children }) => {
       startCall,
       answerCall,
       startNegotiation,
-      answerNego,
       messages,
       roomMembers,
       callReceive,
       // callAnswer,
-      callAnswerResponse,
-      negoReceive,
-      negoAnswerResponse,
     ]
   );
 
