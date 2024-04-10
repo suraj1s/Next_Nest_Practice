@@ -3,21 +3,103 @@ import { useSocket } from "@/context/socketProvider";
 import { webRTCServiceInstance } from "@/services/useWebRTC";
 import { userMediaIntance } from "@/services/userMedia";
 import React, { useCallback, useEffect, useRef, useState } from "react";
-import ReactPlayer from "react-player";
 
 interface ICallsProps {
   caller: string;
   receiver: string;
 }
-const CallsTest = ({ caller, receiver }: ICallsProps) => {
+const CallsText = ({ caller, receiver }: ICallsProps) => {
   const { startCall, answerCall, startNegotiation, callReceive } = useSocket();
 
   const [remoteStream, setRemoteStream] = useState<MediaStream | null>(null);
-  const [localStream, setLocalStream] = useState<MediaStream | null>(null);
+  // const [localStream, setLocalStream] = useState<MediaStream | null>(null);
 
   const [callAnswerStatus, setCallAnswerStatus] = useState<
     "Not Answered" | "Answered" | "Rejected"
   >("Not Answered");
+
+  const [streamTitleLocal, setStreamTitleLocal] = useState<
+    "AUDIO" | "VIDEO" | "No Stream Selected"
+  >("No Stream Selected");
+  const [streamTitleRemote, setStreamTitleRemote] = useState<
+    "AUDIO" | "VIDEO" | "No Stream Selected"
+  >("No Stream Selected");
+  const localStremeRef = useRef<any>(null);
+  const remoteStremeRef = useRef<any>(null);
+
+  // const sendStreams = useCallback(() => {
+  //   if (webRTCServiceInstance.peer && userMediaIntance.mediaInstance) {
+  //     // console.log(webRTCServiceInstance.peer, "webRTCServiceInstance.peer");
+  //     for (const track of userMediaIntance.mediaInstance.getTracks()) {
+  //       webRTCServiceInstance.peer.addTrack(
+  //         track,
+  //         userMediaIntance.mediaInstance
+  //       );
+  //     }
+  //   }
+  // }, [userMediaIntance.mediaInstance]);
+
+  const sendStreams = useCallback(() => {
+    if (webRTCServiceInstance.peer && userMediaIntance?.mediaInstance) {
+      console.log(webRTCServiceInstance.peer, "webRTCServiceInstance.peer");
+
+      // Remove existing tracks
+      const senders = webRTCServiceInstance.peer.getSenders();
+      senders.forEach((sender) => {
+        webRTCServiceInstance.peer &&
+          webRTCServiceInstance.peer.removeTrack(sender);
+      });
+
+      // Add new tracks
+      for (const track of userMediaIntance?.mediaInstance.getTracks()) {
+        webRTCServiceInstance.peer.addTrack(
+          track,
+          userMediaIntance?.mediaInstance
+        );
+      }
+    }
+  }, [webRTCServiceInstance.peer, userMediaIntance?.mediaInstance]);
+
+  useEffect(() => {
+    if (userMediaIntance) {
+      // console.log(userMediaIntance.getMediaStream(), " userMediaIntance");
+      if (streamTitleLocal !== "No Stream Selected") {
+        localStremeRef.current.srcObject = userMediaIntance.mediaInstance;
+      }
+    }
+  }, [userMediaIntance, streamTitleLocal]);
+
+  useEffect(() => {
+    if (remoteStream) {
+      // console.log(remoteStream, " remote strem");
+      if (streamTitleRemote !== "No Stream Selected") {
+        remoteStremeRef.current.srcObject = remoteStream;
+      }
+    }
+  }, [remoteStream, streamTitleRemote]);
+
+  const handleOpenMedia = async ({
+    video,
+    audio,
+  }: {
+    video?: boolean;
+    audio?: boolean;
+  }) => {
+    try {
+      if (userMediaIntance) {
+        if (video) {
+          await userMediaIntance?.openVideoStream();
+          setStreamTitleLocal("VIDEO");
+        }
+        if (audio) {
+          await userMediaIntance?.openAudioStream();
+          setStreamTitleLocal("AUDIO");
+        }
+      }
+    } catch (error) {
+      console.error("Error opening media stream:", error);
+    }
+  };
 
   const handelCallStart = async ({
     callType,
@@ -26,11 +108,7 @@ const CallsTest = ({ caller, receiver }: ICallsProps) => {
   }) => {
     if (typeof window !== "undefined") {
       try {
-        const localStream = await navigator.mediaDevices.getUserMedia({
-          // audio: true,
-          video: true,
-        });
-        setLocalStream(localStream);
+        // handleOpenMedia({ video: true });
         const offer = await webRTCServiceInstance.createOffer({
           type: "call",
         });
@@ -42,16 +120,13 @@ const CallsTest = ({ caller, receiver }: ICallsProps) => {
   };
 
   const handelAnswerCall = async () => {
-    const localStream = await navigator.mediaDevices.getUserMedia({
-      // audio: true,
-      video: true,
-    });
-    setLocalStream(localStream);
+    callReceive.callType === "AUDIO"
+      ? await handleOpenMedia({ audio: true })
+      : await handleOpenMedia({ video: true });
     //  // console.log(callReceive.offer, "callReceive.offer");
     const offer = callReceive.offer;
     const answer = await webRTCServiceInstance.createAnswer({
       offer,
-
       type: "call",
     });
     answerCall({
@@ -62,18 +137,8 @@ const CallsTest = ({ caller, receiver }: ICallsProps) => {
     setCallAnswerStatus("Answered");
   };
 
-  const sendStreams = useCallback(() => {
-    if (webRTCServiceInstance.peer && localStream) {
-      console.log(webRTCServiceInstance.peer, "webRTCServiceInstance.peer");
-      for (const track of localStream.getTracks()) {
-        webRTCServiceInstance.peer.addTrack(track, localStream);
-      }
-    }
-  }, [localStream]);
-
   // negociation start
   const handelNegotiationNeeded = async () => {
-    console.log("Negotiation needed", caller);
     const offer = await webRTCServiceInstance.createOffer({
       type: "nego",
     });
@@ -100,17 +165,14 @@ const CallsTest = ({ caller, receiver }: ICallsProps) => {
     };
   }, [startNegotiation]);
 
-  // console.log(negoReceive, "negoReceive ...");
-
   // set remote strem
   useEffect(() => {
     // console.log(caller, callAnswerResponse, "callAnswerResponse");
     if (webRTCServiceInstance.peer) {
       webRTCServiceInstance.peer.addEventListener("track", async (ev) => {
         const remoteStream = ev.streams;
-        console.log(
-          remoteStream,
-          "remoteStream recieved form another user....."
+        setStreamTitleRemote(
+          remoteStream[0].getVideoTracks().length > 0 ? "VIDEO" : "AUDIO"
         );
         setRemoteStream(remoteStream[0]);
       });
@@ -118,27 +180,7 @@ const CallsTest = ({ caller, receiver }: ICallsProps) => {
   }, []);
 
   return (
-    <div className="flex flex-col gap-5">
-      {
-        <div className="flex gap-x-4 text-sm  ">
-          <button
-            onClick={() => {
-              handelCallStart({ callType: "VIDEO" });
-            }}
-            className="border border-slate-300 rounded-md  px-3 py-1 hover:bg-slate-700 hover:text-blue-400 "
-          >
-            Video
-          </button>
-          {/* <button
-            onClick={async () => {
-              await userMediaIntance?.closeAllStreams();
-            }}
-            className="border border-slate-300 rounded-md  px-3 py-1 hover:bg-slate-700 hover:text-blue-400 "
-          >
-            Close Media
-          </button> */}
-        </div>
-      }
+    <div className="flex container flex-col gap-5">
       <div>
         {callReceive.offer !== null && callReceive.caller !== "" && (
           <div>
@@ -152,7 +194,7 @@ const CallsTest = ({ caller, receiver }: ICallsProps) => {
               <div className="text-xs flex gap-4 py-3">
                 <button
                   onClick={() => handelAnswerCall()}
-                  className="border border-slate-300 rounded-md  px-3 py-1 hover:bg-slate-700 hover:text-blue-400 "
+                  className="btn-primary "
                 >
                   Accept Call
                 </button>
@@ -161,42 +203,89 @@ const CallsTest = ({ caller, receiver }: ICallsProps) => {
           </div>
         )}
       </div>
-      {localStream && (
+      <div className="flex gap-x-4 text-sm  ">
         <button
-          className="border border-slate-300 rounded-md  px-3 py-1 hover:bg-slate-700 hover:text-blue-400 "
-          onClick={sendStreams}
+          onClick={() => handleOpenMedia({ audio: true })}
+          className="btn-primary"
         >
+          Audio
+        </button>
+        <button
+          onClick={() => handleOpenMedia({ video: true })}
+          className="btn-primary "
+        >
+          Video
+        </button>
+        <button
+          onClick={async () => {
+            await userMediaIntance?.closeAllStreams();
+            setStreamTitleLocal("No Stream Selected");
+          }}
+          className="btn-primary "
+        >
+          Close Media
+        </button>
+      </div>
+      {streamTitleLocal !== "No Stream Selected" && (
+        <div className="flex gap-x-4 text-sm  ">
+          <button
+            onClick={() => handelCallStart({ callType: streamTitleLocal })}
+            className="btn-primary "
+          >
+            Start Call
+          </button>
+          {/* <button className="btn-primary ">End Call</button> */}
+        </div>
+      )}
+      {userMediaIntance.mediaInstance && (
+        <button className="btn-primary !w-fit text-xs" onClick={sendStreams}>
           Send Stream
         </button>
       )}
-      <div className="flex flex-col flex-wrap  gap-10">
-        {localStream && (
-          <div>
-            <p>Your video</p>
-            <ReactPlayer
-              playing
-              muted
-              height="400px"
-              width="600px"
-              url={localStream}
-            />
-          </div>
-        )}
-        {remoteStream && (
-          <div>
-            <p>Remote video</p>
-            <ReactPlayer
-              playing
-              muted
-              height="400px"
-              width="600px"
-              url={remoteStream}
-            />{" "}
-          </div>
-        )}
+      <div>
+        <h1> You {streamTitleLocal}</h1>
+        <div>
+          <audio
+            ref={localStremeRef}
+            autoPlay
+            playsInline
+            controls={true}
+            className={`${streamTitleLocal === "AUDIO" ? "block" : "hidden"}`}
+          />
+          <video
+            ref={localStremeRef}
+            width={400}
+            height={300}
+            autoPlay
+            playsInline
+            controls={true}
+            className={`${streamTitleLocal === "VIDEO" ? "block" : "hidden"}`}
+          />
+        </div>
+      </div>
+      <div>
+        <h1> Peer {streamTitleRemote}</h1>
+        <div>
+          <audio
+            ref={remoteStremeRef}
+            autoPlay
+            playsInline
+            controls={true}
+            className={`${streamTitleRemote === "AUDIO" ? "block" : "hidden"}`}
+          />
+          <video
+            ref={remoteStremeRef}
+            width={400}
+            height={300}
+            autoPlay
+            playsInline
+            controls={true}
+            className={`${streamTitleRemote === "VIDEO" ? "block" : "hidden"}`}
+          />
+        </div>
       </div>
     </div>
   );
 };
 
-export default CallsTest;
+export default CallsText;
